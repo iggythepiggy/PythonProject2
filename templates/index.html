@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Study Buddy</title>
+</head>
+<body>
+    <h1>Study Buddy - PDF Summarizer & Keyword Search</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="pdf_file" required>
+        <input type="text" name="keyword" placeholder="Search keyword (optional)">
+        <button type="submit">Submit</button>
+    </form>
+
+    <h2>Summary</h2>
+    <p>{{ summary }}</p>
+
+    {% if matches %}
+    <h2>Keyword Matches</h2>
+    <ul>
+        {% for i, sentence in matches %}
+            <li>{{ i }}: {{ sentence }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+</html>
