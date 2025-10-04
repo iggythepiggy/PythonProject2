@@ -9,8 +9,7 @@ import openai
 app = Flask(__name__)
 
 # Initialize OpenAI client
-openai.api_key = os.getenv("OPENAI_API_KEY")  # replace with your key
-
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Summarizer function
 def summarize_text(text, max_length=100):
