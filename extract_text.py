@@ -15,15 +15,16 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Summarizer function
 def summarize_text(text, max_length=100):
     prompt = f"""
-    You are an expert study assistant. Summarize the following text for students preparing for a test.
+   You are an expert study assistant. Summarize the following text for students preparing for a test. 
 
-    Output format:
-    - Main Idea: one-sentence summary of the overall topic.
-    - Key Points: 3–7 bullet points with the most important facts, terms, or events.
-    - Study Tip: one short sentence to help remember or connect the information.
+Output format:
+- Main Idea: one-sentence summary of the overall topic.
+- Key Points: 3–7 bullet points with the most important facts, terms, or events.
+- Study Tip: One way to help recall the information that is fun, quick, and easy to apply.
 
-    Text:
-    {text}
+Text:
+{text}
+
     """
     response = client.chat.completions.create(
         model="gpt-4o-mini",
