@@ -2,7 +2,7 @@ from flask import Flask, render_template, request
 from openai import OpenAI
 import PyPDF2
 import os
-import openai
+from io import BytesIO
 
 app = Flask(__name__)
 
