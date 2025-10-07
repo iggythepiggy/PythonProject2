@@ -3,6 +3,9 @@ from openai import OpenAI
 import PyPDF2
 import os
 from io import BytesIO
+from PIL import Image
+import pytesseract
+
 
 app = Flask(__name__)
 
@@ -74,10 +77,18 @@ def home():
         elif file_ext == "txt":
             file_contents = file.read().decode("utf-8")
             all_text.append(file_contents)
+        #Handle Images
+        elif file_ext in ["jpeg","jpg","png"]:
+            image = Image.open(file)
+            extract_text =  pytesseract.image_to_string(image)
+            clean_text = " ".join(extract_text.split())
+            all_text.append(clean_text)
+
+
 
         # Unsupported file type
         else:
-            return "Unsupported file type. Please upload a PDF or TXT file."
+            return "Unsupported file type. Please upload a PDF, TXT file, JPEG file, JPG file, or PNG file."
 
         # Clean text
         clean_text = " ".join(" ".join(all_text).split())
