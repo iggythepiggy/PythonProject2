@@ -39,10 +39,10 @@ def solve_and_explain_text(text, max_length=1000):
     """Ask AI to solve and explain the uploaded problem."""
     prompt = f"""
     You are a helpful AI that solves academic problems. 
-    Solve the problem in the uploaded file **briefly** and explain the key steps in under 5 sentences. 
-    Avoid unnecessary detail or repeating the question. 
-    Be clear and direct.
-    At the end of the explanation give the answer clearly and concisely
+    Solve the problem in the uploaded file **briefly** and explain the key steps in simple, clear language in **no more than 5 sentences**. 
+    Avoid unnecessary details, repetition, or complex symbols. 
+    Be direct, easy to understand, and concise. 
+    At the end, provide the final answer clearly and separately.
 
     Problem:
     {text}
