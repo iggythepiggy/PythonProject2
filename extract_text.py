@@ -74,6 +74,12 @@ def chunk_text_by_words(text, chunk_size=500):
 # --- 5️⃣ Main route ---
 @app.route("/", methods=["GET", "POST"])
 def home():
+    if request.method == "POST":
+        if "text_file" not in request.files:
+            return "No file uploaded", 400
+        file = request.files["text_file"]
+        print("Received file:", file.filename)
+
     summary = ""
     matches = []
 
