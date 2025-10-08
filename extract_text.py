@@ -108,7 +108,11 @@ def home():
         # Handle Images (JPEG, JPG, PNG)
         elif file_ext in ["jpeg", "jpg", "png"]:
             image = Image.open(file)
-
+            image.thumbnail((1024, 1024))  # keeps aspect ratio
+            image = image.convert("L")
+            text = pytesseract.image_to_string(image,lang="eng")
+            custom_config = r'--oem 1 --psm 3'
+            text = pytesseract.image_to_string(image, config=custom_config)
 
             extract_text = pytesseract.image_to_string(image)
             clean_text = " ".join(extract_text.split())
