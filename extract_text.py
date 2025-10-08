@@ -66,7 +66,7 @@ def search_for_keywords(keyword, text):
     return results
 
 # --- 4️⃣ Split text into chunks (unchanged) ---
-def chunk_text_by_words(text, chunk_size=500):
+def chunk_text_by_words(text, chunk_size=800):
     words = text.split()
     for i in range(0, len(words), chunk_size):
         yield " ".join(words[i:i + chunk_size])
