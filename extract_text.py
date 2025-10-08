@@ -108,7 +108,7 @@ def home():
         # Handle Images (JPEG, JPG, PNG)
         elif file_ext in ["jpeg", "jpg", "png"]:
             image = Image.open(file)
-            image.thumbnail(1024, 1024)
+            image.thumbnail((1024, 1024))
             image =image.convert("L")
             extract_text = pytesseract.image_to_string(image)
             clean_text = " ".join(extract_text.split())
