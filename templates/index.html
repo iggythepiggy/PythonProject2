@@ -39,6 +39,18 @@
       background: #312e81;
       transform: scale(1.03);
     }
+    .btn-solve {
+      background: #16a34a;
+      color: white;
+      border-radius: 8px;
+      font-weight: 500;
+      padding: 10px;
+      transition: all 0.2s ease-in-out;
+    }
+    .btn-solve:hover {
+      background: #15803d;
+      transform: scale(1.03);
+    }
     textarea {
       height: 230px;
       border-radius: 10px;
@@ -65,15 +77,14 @@
   <div class="container">
     <div class="header">
       <h1>📘 StudySpark</h1>
-      <p class="text-muted">Upload a study guide, summarize it, and search for keywords instantly.</p>
+      <p class="text-muted">Upload a study guide, summarize it, or solve and explain problems instantly.</p>
     </div>
 
     <div class="card">
       <form method="POST" enctype="multipart/form-data">
         <div class="mb-3">
           <label class="form-label fw-semibold">Upload Document</label>
-         <input type="file" name="text_file" class="form-control" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
-
+          <input type="file" name="text_file" class="form-control" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
         </div>
 
         <div class="mb-3">
@@ -81,7 +92,10 @@
           <input type="text" name="keyword" class="form-control" placeholder="e.g. mitochondria">
         </div>
 
-        <button type="submit" class="btn btn-custom w-100">✨ Summarize</button>
+        <div class="d-flex gap-2">
+          <button type="submit" name="action" value="summarize" class="btn btn-custom w-50">✨ Summarize</button>
+          <button type="submit" name="action" value="solve" class="btn btn-solve w-50">🧩 Solve & Explain</button>
+        </div>
       </form>
     </div>
 
