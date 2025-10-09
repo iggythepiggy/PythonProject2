@@ -5,7 +5,7 @@ import os
 from io import BytesIO
 from PIL import Image
 import pytesseract
-
+#Please work
 app = Flask(__name__)
 
 # Limit upload size to 10 MB
