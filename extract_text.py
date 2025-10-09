@@ -38,7 +38,7 @@ def summarize_text(text, max_length=200):
 def solve_and_explain_text(text, max_length=1000):
     """Ask AI to solve and explain the uploaded problem."""
     prompt = f"""
-    You are a helpful AI that solves academic problems. 
+    You are a helpful AI that solves academic problems like math and science. 
     Solve the problem in the uploaded file **briefly** and explain the key steps in simple, clear language in **no more than 5 sentences**. 
     Avoid unnecessary details, repetition, or complex symbols. 
     Be direct, easy to understand, and concise. 
@@ -111,7 +111,7 @@ def home():
             image.thumbnail((1024, 1024))  # keeps aspect ratio
             image = image.convert("L")
             text = pytesseract.image_to_string(image,lang="eng")
-            custom_config = r'--oem 1 --psm 3' #Please Work
+            custom_config = r'--oem 1 --psm 6' #Please Work
             text = pytesseract.image_to_string(image, config=custom_config)
 
             extract_text = pytesseract.image_to_string(image)
