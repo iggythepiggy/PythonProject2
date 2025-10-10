@@ -68,8 +68,16 @@
       font-weight: 600;
       margin-bottom: 15px;
     }
-    ul {
-      padding-left: 20px;
+    #streamed-output {
+      font-size: 16px;
+      white-space: pre-wrap;
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      min-height: 100px;
+      border: 1px solid #e5e7eb;
+      line-height: 1.5;
     }
   </style>
 </head>
@@ -81,42 +89,76 @@
     </div>
 
     <div class="card">
-      <form method="POST" enctype="multipart/form-data">
+      <form id="upload-form" enctype="multipart/form-data">
         <div class="mb-3">
           <label class="form-label fw-semibold">Upload Document</label>
-          <input type="file" name="text_file" class="form-control" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
+          <input type="file" name="text_file" id="file-input" class="form-control" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
         </div>
 
         <div class="mb-3">
           <label class="form-label fw-semibold">Keyword Search (optional)</label>
-          <input type="text" name="keyword" class="form-control" placeholder="e.g. mitochondria">
+          <input type="text" name="keyword" id="keyword" class="form-control" placeholder="e.g. mitochondria">
         </div>
 
         <div class="d-flex gap-2">
-          <button type="submit" name="action" value="summarize" class="btn btn-custom w-50">✨ Summarize</button>
-          <button type="submit" name="action" value="solve" class="btn btn-solve w-50">🧩 Solve & Explain</button>
+          <button type="submit" id="summarize-btn" name="action" value="summarize" class="btn btn-custom w-50">✨ Summarize</button>
+          <button type="submit" id="solve-btn" name="action" value="solve" class="btn btn-solve w-50">🧩 Solve & Explain</button>
         </div>
       </form>
     </div>
 
-    {% if summary %}
     <div class="results-card">
-      <h4>✨ Summary</h4>
-      <textarea class="form-control" readonly>{{ summary }}</textarea>
+      <h4>🪄 Live Output</h4>
+      <div id="streamed-output">Waiting for response...</div>
     </div>
-    {% endif %}
-
-    {% if matches %}
-    <div class="results-card">
-      <h4>🔍 Keyword Matches</h4>
-      <ul>
-        {% for num, sentence in matches %}
-          <li><strong>Sentence {{ num }}:</strong> {{ sentence }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-    {% endif %}
   </div>
+
+  <script>
+    const form = document.getElementById("upload-form");
+    const outputDiv = document.getElementById("streamed-output");
+
+    // Function to simulate typing effect
+    async function typeText(element, text, speed = 10) {
+      for (let i = 0; i < text.length; i++) {
+        element.textContent += text[i];
+        await new Promise(resolve => setTimeout(resolve, speed));
+      }
+    }
+
+    form.addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const file = document.getElementById("file-input").files[0];
+      if (!file) {
+        alert("Please upload a file first!");
+        return;
+      }
+
+      outputDiv.textContent = "Processing...\n\n";
+
+      const formData = new FormData();
+      formData.append("text_file", file);
+
+      const response = await fetch("/stream", {
+        method: "POST",
+        body: formData
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      outputDiv.textContent = ""; // Clear previous text
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        await typeText(outputDiv, chunk, 5); // smaller = faster typing
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+
+      outputDiv.textContent += "\n✅ Done!";
+    });
+  </script>
 </body>
 </html>
-<!-- Redeploy trigger -->
