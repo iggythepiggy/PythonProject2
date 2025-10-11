@@ -9,76 +9,23 @@
       background: linear-gradient(to right, #f9fafb, #eef2ff);
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
-    .container {
-      max-width: 750px;
-      margin-top: 60px;
-    }
+    .container { max-width: 750px; margin-top: 60px; }
     .card {
       border-radius: 16px;
       box-shadow: 0 6px 16px rgba(0,0,0,0.08);
       padding: 30px;
       background: white;
     }
-    .header {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-    .header h1 {
-      font-weight: 700;
-      color: #4338ca;
-    }
-    .btn-custom {
-      background: #4338ca;
-      color: white;
-      border-radius: 8px;
-      font-weight: 500;
-      padding: 10px;
-      transition: all 0.2s ease-in-out;
-    }
-    .btn-custom:hover {
-      background: #312e81;
-      transform: scale(1.03);
-    }
-    .btn-solve {
-      background: #16a34a;
-      color: white;
-      border-radius: 8px;
-      font-weight: 500;
-      padding: 10px;
-      transition: all 0.2s ease-in-out;
-    }
-    .btn-solve:hover {
-      background: #15803d;
-      transform: scale(1.03);
-    }
-    textarea {
-      height: 230px;
-      border-radius: 10px;
-      padding: 15px;
-      font-size: 15px;
-    }
-    .results-card {
-      margin-top: 25px;
-      border-radius: 14px;
-      background: #f9fafb;
-      padding: 20px;
-    }
-    h4 {
-      color: #111827;
-      font-weight: 600;
-      margin-bottom: 15px;
-    }
-    #streamed-output {
-      font-size: 16px;
-      white-space: pre-wrap;
-      background: #f9fafb;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 20px;
-      min-height: 100px;
-      border: 1px solid #e5e7eb;
-      line-height: 1.5;
-    }
+    .header { text-align: center; margin-bottom: 25px; }
+    .header h1 { font-weight: 700; color: #4338ca; }
+    .btn-custom { background: #4338ca; color: white; border-radius: 8px; font-weight: 500; padding: 10px; transition: all 0.2s ease-in-out; }
+    .btn-custom:hover { background: #312e81; transform: scale(1.03); }
+    .btn-solve { background: #16a34a; color: white; border-radius: 8px; font-weight: 500; padding: 10px; transition: all 0.2s ease-in-out; }
+    .btn-solve:hover { background: #15803d; transform: scale(1.03); }
+    textarea { height: 230px; border-radius: 10px; padding: 15px; font-size: 15px; }
+    .results-card { margin-top: 25px; border-radius: 14px; background: #f9fafb; padding: 20px; }
+    h4 { color: #111827; font-weight: 600; margin-bottom: 15px; }
+    #streamed-output { font-size: 16px; white-space: pre-wrap; background: #f9fafb; padding: 15px; border-radius: 10px; margin-top: 20px; min-height: 100px; border: 1px solid #e5e7eb; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -94,12 +41,10 @@
           <label class="form-label fw-semibold">Upload Document</label>
           <input type="file" name="text_file" id="file-input" class="form-control" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
         </div>
-
         <div class="mb-3">
           <label class="form-label fw-semibold">Keyword Search (optional)</label>
           <input type="text" name="keyword" id="keyword" class="form-control" placeholder="e.g. mitochondria">
         </div>
-
         <div class="d-flex gap-2">
           <button type="submit" id="summarize-btn" name="action" value="summarize" class="btn btn-custom w-50">✨ Summarize</button>
           <button type="submit" id="solve-btn" name="action" value="solve" class="btn btn-solve w-50">🧩 Solve & Explain</button>
@@ -138,6 +83,10 @@
 
       const formData = new FormData();
       formData.append("text_file", file);
+
+      // Append the action button value (summarize/solve)
+      const action = document.querySelector("button[type=submit]:focus");
+      if (action) formData.append("action", action.value);
 
       const response = await fetch("/stream", {
         method: "POST",

@@ -24,7 +24,7 @@ def summarize_text(text, max_length=200):
     Output format:
     - Main Idea: one-sentence summary of the overall topic.
     - Key Points: 3–7 bullet points with the most important facts, terms, or events.
-    - Study Tip: One way to help recall the information that is fun, quick, and easy to apply.
+    - Study Tip: Highlight the most important part of the summary and how you can practice and understand it better.
 
     Text:
     {text}
@@ -35,6 +35,7 @@ def summarize_text(text, max_length=200):
         max_tokens=max_length
     )
     return response.choices[0].message.content
+
 
 # --- 2️⃣ Solve & Explain function ---
 def solve_and_explain_text(text, max_length=1000):
@@ -54,6 +55,7 @@ def solve_and_explain_text(text, max_length=1000):
     )
     return response.choices[0].message.content
 
+
 # --- 3️⃣ Keyword search ---
 def search_for_keywords(keyword, text):
     keyword = keyword.lower()
@@ -63,6 +65,7 @@ def search_for_keywords(keyword, text):
         if keyword in sentence.lower():
             results.append((i + 1, sentence.strip()))
     return results
+
 
 # --- 4️⃣ Chunking functions ---
 def chunk_text_by_words(text, chunk_size=800):
@@ -74,6 +77,7 @@ def chunk_text_for_streaming(text, chunk_size=50):
     words = text.split()
     for i in range(0, len(words), chunk_size):
         yield " ".join(words[i:i + chunk_size])
+
 
 # --- 5️⃣ Image Preprocessing for better OCR ---
 def preprocess_image_for_ocr(image_path):
@@ -94,6 +98,7 @@ def preprocess_image_for_ocr(image_path):
     text = pytesseract.image_to_string(Image.open(processed_path))
     clean_text = " ".join(text.split())
     return clean_text
+
 
 # --- 6️⃣ OCR / Summarize Streaming Route ---
 @app.route("/stream", methods=["POST"])
@@ -117,15 +122,22 @@ def stream_text():
     else:
         return "Unsupported file type.", 400
 
-    # Summarize text for streaming
-    summary = summarize_text(text, max_length=200)
+    # Decide action
+    action = request.form.get("action")
+    if action == "summarize":
+        result_text = summarize_text(text, max_length=200)
+    elif action == "solve":
+        result_text = solve_and_explain_text(text, max_length=250)
+    else:
+        result_text = "No valid action selected."
 
-    # Stream summary in chunks
+    # Stream result in chunks
     def generate():
-        for chunk in chunk_text_for_streaming(summary):
-            yield chunk
+        for chunk in chunk_text_for_streaming(result_text):
+            yield chunk + " "
 
     return Response(generate(), mimetype='text/plain')
+
 
 # --- 7️⃣ Main Route (Summarize / Solve) ---
 @app.route("/", methods=["GET", "POST"])
@@ -178,6 +190,7 @@ def home():
             summary = solve_and_explain_text(clean_text, max_length=250)
 
     return render_template("index.html", summary=summary, matches=matches)
+
 
 # --- 8️⃣ Run App ---
 if __name__ == "__main__":
