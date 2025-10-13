@@ -62,7 +62,7 @@
     const form = document.getElementById("upload-form");
     const outputDiv = document.getElementById("streamed-output");
 
-    // Function to simulate typing effect
+    // --- Typing effect for streaming chunks ---
     async function typeText(element, text, speed = 10) {
       for (let i = 0; i < text.length; i++) {
         element.textContent += text[i];
@@ -88,25 +88,28 @@
       const action = document.querySelector("button[type=submit]:focus");
       if (action) formData.append("action", action.value);
 
-      const response = await fetch("/stream", {
-        method: "POST",
-        body: formData
-      });
+      const response = await fetch("/stream", { method: "POST", body: formData });
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
+      let accumulatedChunks = ""; // <-- NEW: accumulate all partial chunks
       outputDiv.textContent = ""; // Clear previous text
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
+
         const chunk = decoder.decode(value);
-        await typeText(outputDiv, chunk, 5); // smaller = faster typing
+        accumulatedChunks += chunk;
+
+        // NEW: show partial chunk immediately for live output
+        outputDiv.textContent = accumulatedChunks;
         window.scrollTo(0, document.body.scrollHeight);
       }
 
-      outputDiv.textContent += "\n✅ Done!";
+      // NEW: overwrite live output with final, full summary/solution
+      outputDiv.textContent = accumulatedChunks + "\n\n✅ Final Result!";
     });
   </script>
 </body>
