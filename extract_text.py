@@ -5,9 +5,13 @@ import PyPDF2
 from PIL import Image
 import pytesseract
 import cv2
+import platform
 
 # --- Setup ---
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+if platform.system() == "Windows":
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+else:
+    pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB limit
 UPLOAD_FOLDER = "uploads"
