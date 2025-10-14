@@ -81,17 +81,25 @@ def stream_text():
     def generate():
         # --- IMAGE FILES (OCR only) ---
         if file_ext in ["jpeg", "jpg", "png"]:
-            # First, preprocess normally to count words
             initial_text = preprocess_image_for_ocr(file_path)
-            # If small text, reprocess in high quality
             high_quality = len(initial_text.split()) < 10
             ocr_text = preprocess_image_for_ocr(file_path, high_quality=high_quality)
 
             for chunk in chunk_text_for_streaming(ocr_text):
                 if action == "summarize":
-                    prompt = f"You are an expert study assistant. Summarize this text for a student:\n{chunk}"
+                    prompt = (
+                        "You are an expert study assistant. "
+                        "Summarize the following text clearly for a student. "
+                        "Use plain English and never include LaTeX, brackets, or special symbols like \\[ or \\text{.} "
+                        f"\n\nText:\n{chunk}"
+                    )
                 else:
-                    prompt = f"You are a helpful AI that solves academic problems. Solve and explain briefly:\n{chunk}"
+                    prompt = (
+                        "You are a helpful AI that solves academic problems clearly and neatly. "
+                        "Write the math and answers in plain text (no LaTeX, backslashes, or brackets). "
+                        "Keep your explanation short, clean, and formatted neatly for easy reading.\n\n"
+                        f"Problem:\n{chunk}"
+                    )
                 yield from stream_gpt_response(prompt)
 
         # --- PDF FILES ---
@@ -100,9 +108,17 @@ def stream_text():
             text = " ".join(page.extract_text() or "" for page in pdf_reader.pages)
             for chunk in chunk_text_for_streaming(text):
                 if action == "summarize":
-                    prompt = f"You are an expert study assistant. Summarize this text for a student:\n{chunk}"
+                    prompt = (
+                        "Summarize this text clearly in plain English. "
+                        "Do not include LaTeX, math code, or special formatting.\n\n"
+                        f"{chunk}"
+                    )
                 else:
-                    prompt = f"You are a helpful AI that solves academic problems. Solve and explain briefly:\n{chunk}"
+                    prompt = (
+                        "Solve this problem in plain text, using clear step-by-step reasoning. "
+                        "Do not use LaTeX or special math symbols.\n\n"
+                        f"{chunk}"
+                    )
                 yield from stream_gpt_response(prompt)
 
         # --- TEXT FILES ---
@@ -110,9 +126,9 @@ def stream_text():
             text = file.read().decode("utf-8")
             for chunk in chunk_text_for_streaming(text):
                 if action == "summarize":
-                    prompt = f"Summarize this text:\n\n{chunk}"
+                    prompt = f"Summarize this clearly in plain text:\n\n{chunk}"
                 else:
-                    prompt = f"Solve this problem and explain briefly:\n\n{chunk}"
+                    prompt = f"Solve this problem in plain text and explain briefly:\n\n{chunk}"
                 yield from stream_gpt_response(prompt)
 
         else:
