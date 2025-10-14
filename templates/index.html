@@ -18,14 +18,46 @@
     }
     .header { text-align: center; margin-bottom: 25px; }
     .header h1 { font-weight: 700; color: #4338ca; }
-    .btn-custom { background: #4338ca; color: white; border-radius: 8px; font-weight: 500; padding: 10px; transition: all 0.2s ease-in-out; }
+
+    .btn-custom, .btn-solve {
+      color: white;
+      border-radius: 8px;
+      font-weight: 500;
+      padding: 10px;
+      transition: all 0.2s ease-in-out;
+      border: none;
+      outline: none;
+    }
+    .btn-custom { background: #4338ca; }
     .btn-custom:hover { background: #312e81; transform: scale(1.03); }
-    .btn-solve { background: #16a34a; color: white; border-radius: 8px; font-weight: 500; padding: 10px; transition: all 0.2s ease-in-out; }
+    .btn-solve { background: #16a34a; }
     .btn-solve:hover { background: #15803d; transform: scale(1.03); }
+
+    /* Pressed/disabled state */
+    .btn:disabled.btn-custom { background: #312e81; cursor: not-allowed; }
+    .btn:disabled.btn-solve { background: #15803d; cursor: not-allowed; }
+
     textarea { height: 230px; border-radius: 10px; padding: 15px; font-size: 15px; }
     .results-card { margin-top: 25px; border-radius: 14px; background: #f9fafb; padding: 20px; }
     h4 { color: #111827; font-weight: 600; margin-bottom: 15px; }
-    #streamed-output { font-size: 16px; white-space: pre-wrap; background: #f9fafb; padding: 15px; border-radius: 10px; margin-top: 20px; min-height: 100px; border: 1px solid #e5e7eb; line-height: 1.5; }
+    #streamed-output {
+      font-size: 16px;
+      white-space: pre-wrap;
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      min-height: 100px;
+      border: 1px solid #e5e7eb;
+      line-height: 1.5;
+    }
+    #spinner {
+      display: none;
+      text-align: center;
+      font-size: 18px;
+      margin-top: 10px;
+      color: #4338ca;
+    }
   </style>
 </head>
 <body>
@@ -41,15 +73,12 @@
           <label class="form-label fw-semibold">Upload Document</label>
           <input type="file" name="text_file" id="file-input" class="form-control" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
         </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Keyword Search (optional)</label>
-          <input type="text" name="keyword" id="keyword" class="form-control" placeholder="e.g. mitochondria">
-        </div>
         <div class="d-flex gap-2">
           <button type="submit" id="summarize-btn" name="action" value="summarize" class="btn btn-custom w-50">✨ Summarize</button>
           <button type="submit" id="solve-btn" name="action" value="solve" class="btn btn-solve w-50">🧩 Solve & Explain</button>
         </div>
       </form>
+      <div id="spinner">⚡ Processing... please wait</div>
     </div>
 
     <div class="results-card">
@@ -61,14 +90,9 @@
   <script>
     const form = document.getElementById("upload-form");
     const outputDiv = document.getElementById("streamed-output");
-
-    // --- Typing effect for streaming chunks ---
-    async function typeText(element, text, speed = 10) {
-      for (let i = 0; i < text.length; i++) {
-        element.textContent += text[i];
-        await new Promise(resolve => setTimeout(resolve, speed));
-      }
-    }
+    const summarizeBtn = document.getElementById("summarize-btn");
+    const solveBtn = document.getElementById("solve-btn");
+    const spinner = document.getElementById("spinner");
 
     form.addEventListener("submit", async function(e) {
       e.preventDefault();
@@ -79,37 +103,56 @@
         return;
       }
 
-      outputDiv.textContent = "Processing...\n\n";
+      // Disable pressed button and keep it "pressed" style
+      summarizeBtn.disabled = false;
+      solveBtn.disabled = false;
+      const pressedButton = document.activeElement;
+      pressedButton.disabled = true;
+
+      // Disable the other button too
+      if (pressedButton === summarizeBtn) solveBtn.disabled = true;
+      else summarizeBtn.disabled = true;
+
+      // Reset UI
+      outputDiv.textContent = "";
+      spinner.style.display = "block";
 
       const formData = new FormData();
       formData.append("text_file", file);
-
-      // Append the action button value (summarize/solve)
-      const action = document.querySelector("button[type=submit]:focus");
-      if (action) formData.append("action", action.value);
+      formData.append("action", pressedButton.value);
 
       const response = await fetch("/stream", { method: "POST", body: formData });
+
+      if (!response.ok || !response.body) {
+        outputDiv.textContent = "❌ Error: Unable to stream response. Check Flask logs.";
+        spinner.style.display = "none";
+        summarizeBtn.disabled = false;
+        solveBtn.disabled = false;
+        return;
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
-      let accumulatedChunks = ""; // <-- NEW: accumulate all partial chunks
-      outputDiv.textContent = ""; // Clear previous text
+      async function typeText(text) {
+        for (const char of text) {
+          outputDiv.textContent += char;
+          await new Promise(r => setTimeout(r, 10));
+          window.scrollTo(0, document.body.scrollHeight);
+        }
+      }
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-
-        const chunk = decoder.decode(value);
-        accumulatedChunks += chunk;
-
-        // NEW: show partial chunk immediately for live output
-        outputDiv.textContent = accumulatedChunks;
-        window.scrollTo(0, document.body.scrollHeight);
+        const chunk = decoder.decode(value, { stream: true });
+        await typeText(chunk);
       }
 
-      // NEW: overwrite live output with final, full summary/solution
-      outputDiv.textContent = accumulatedChunks + "\n\n✅ Final Result!";
+      spinner.style.display = "none";
+      outputDiv.textContent += "\n\n✅ Finished!";
+      summarizeBtn.disabled = false;
+      solveBtn.disabled = false;
     });
   </script>
 </body>
