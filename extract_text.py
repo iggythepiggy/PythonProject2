@@ -62,7 +62,7 @@ def preprocess_image_for_ocr(image_path, scale_factor=1.0):
     return text
 
 # --- Chunk Text ---
-def chunk_text_for_streaming(text, chunk_size=150):
+def chunk_text(text, chunk_size=150):
     words = text.split()
     if len(words) < 10:
         yield " ".join(words)
@@ -91,21 +91,12 @@ def gpt_response(prompt, max_length=500):
     )
     return resp.choices[0].message.content
 
-# --- Math symbols ---
-MATH_SYMBOLS = ["/","+","-","*","^","%","=","<",">","(",")"]
-def contains_math_symbols(text):
-    return any(symbol in text for symbol in MATH_SYMBOLS)
-
 # --- Efficiency Instruction ---
 EFFICIENCY_INSTRUCTION = (
     "Summarize the text in the simplest, clearest, and most concise way possible. "
     "Keep sentences short, avoid repetition, and use plain language. "
     "Format your answer in clear paragraphs."
 )
-
-# --- Solve Keywords ---
-SOLVE_KEYWORDS = ["solve","calculate","compute","evaluate","find","derivative","integral","answer"]
-
 
 @app.route("/stream", methods=["POST"])
 def stream_text():
@@ -117,50 +108,52 @@ def stream_text():
     file_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
     file.save(file_path)
 
-    # Get user question instead of action
+    action = request.form.get("action", "summarize").lower()
     user_question = request.form.get("custom_prompt", "").strip()
-    if not user_question:
-        return "⚠️ Please provide a question in 'custom_prompt'.", 400
 
     def generate():
         # --- Extract text ---
         if file_ext in ["jpeg", "jpg", "png"]:
             raw_text = preprocess_image_for_ocr(file_path)
+            pages = [raw_text]
         elif file_ext == "pdf":
             pdf_reader = PyPDF2.PdfReader(file_path)
-            raw_text = " ".join(page.extract_text() or "" for page in pdf_reader.pages)
+            pages = [page.extract_text() or "" for page in pdf_reader.pages]
         elif file_ext == "txt":
             raw_text = file.read().decode("utf-8")
+            pages = [raw_text]
         else:
             yield "Unsupported file type."
             return
 
-        text = deduplicate_text(raw_text)
+        # --- Process chunks ---
+        for page_text in pages:
+            text = deduplicate_text(page_text)
+            for chunk in chunk_text(text):
+                if action == "summarize":
+                    prompt = f"{EFFICIENCY_INSTRUCTION}\nSummarize the following text clearly and concisely:\n{chunk}"
+                elif action == "solve":
+                    prompt = f"{EFFICIENCY_INSTRUCTION}\nSolve or explain this problem clearly:\n{chunk}"
+                elif action == "custom":
+                    if not user_question:
+                        yield "⚠️ No custom prompt provided.\n"
+                        return
+                    prompt = f"{EFFICIENCY_INSTRUCTION}\nAnswer this question based on the following text:\nQuestion: {user_question}\nText:\n{chunk}"
+                else:
+                    prompt = f"{EFFICIENCY_INSTRUCTION}\nSummarize the following text:\n{chunk}"
 
-        # --- Split text into chunks ---
-        chunk_summaries = []
-
-        for chunk in chunk_text_for_streaming(text):
-            # For each chunk, ask for the answer if it contains relevant info
-            prompt = f"{EFFICIENCY_INSTRUCTION}\nAnswer this question based only on the following text, in simple, clear language:\nQuestion: {user_question}\nText:\n{chunk}"
-            summary_chunk = gpt_response(prompt)
-            chunk_summaries.append(summary_chunk.strip())
-
-        # --- Combine all chunk-level answers into one final answer ---
-        combined_text = " ".join(chunk_summaries)
-        final_prompt = f"{EFFICIENCY_INSTRUCTION}\nCombine the following partial answers into a single concise answer to the question '{user_question}':\n{combined_text}"
-
-        for part in stream_gpt_response(final_prompt):
-            if part.strip():
-                yield part
+                for part in stream_gpt_response(prompt):
+                    if part.strip():
+                        yield part
+                yield "\n\n"  # Paragraph break between chunks
 
     return Response(generate(), content_type='text/plain; charset=utf-8')
-
 
 
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
