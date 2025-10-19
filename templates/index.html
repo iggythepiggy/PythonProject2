@@ -63,6 +63,11 @@
 
     footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 50px; padding-bottom: 30px; }
   </style>
+
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+   src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
   <!-- Navbar -->
@@ -144,7 +149,7 @@
         const spinner = document.getElementById(`${action}-spinner`);
         const outputDiv = document.getElementById(`${action}-output`);
         spinner.style.display = "block";
-        outputDiv.textContent = "";
+        outputDiv.innerHTML = "";
 
         const formData = new FormData();
         formData.append("text_file", file);
@@ -164,11 +169,13 @@
           const { value, done } = await reader.read();
           if (done) break;
           const chunk = decoder.decode(value, { stream: true });
-          outputDiv.textContent += chunk;
+          outputDiv.innerHTML += chunk;
+          MathJax.typesetPromise([outputDiv]); // Render LaTeX for this chunk
         }
 
         spinner.style.display = "none";
-        outputDiv.textContent += "\n\n✅ Done!";
+        outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
+        MathJax.typesetPromise([outputDiv]);
       });
     });
 
@@ -181,7 +188,7 @@
       const spinner = document.getElementById("custom-spinner");
       const outputDiv = document.getElementById("custom-output");
       spinner.style.display = "block";
-      outputDiv.textContent = "";
+      outputDiv.innerHTML = "";
 
       const formData = new FormData();
       if (file) formData.append("text_file", file);
@@ -195,11 +202,13 @@
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        outputDiv.textContent += decoder.decode(value);
+        outputDiv.innerHTML += decoder.decode(value);
+        MathJax.typesetPromise([outputDiv]);
       }
 
       spinner.style.display = "none";
-      outputDiv.textContent += "\n\n✅ Done!";
+      outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
+      MathJax.typesetPromise([outputDiv]);
     });
   </script>
 </body>
