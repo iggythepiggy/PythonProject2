@@ -10,29 +10,13 @@
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       min-height: 100vh;
     }
-    .navbar {
-      background-color: white;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
+    .navbar { background-color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     .navbar-brand { font-weight: 700; color: #4338ca !important; }
-    .nav-link {
-      font-weight: 500;
-      color: #4b5563 !important;
-      transition: all 0.2s;
-    }
-    .nav-link.active {
-      color: #4338ca !important;
-      border-bottom: 3px solid #4338ca;
-    }
+    .nav-link { font-weight: 500; color: #4b5563 !important; transition: all 0.2s; }
+    .nav-link.active { color: #4338ca !important; border-bottom: 3px solid #4338ca; }
 
     .container { max-width: 800px; margin-top: 60px; }
-    .card {
-      border-radius: 16px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-      padding: 30px;
-      background: white;
-      transition: all 0.3s ease;
-    }
+    .card { border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); padding: 30px; background: white; transition: all 0.3s ease; }
 
     .btn-primary { background: #4338ca; border: none; border-radius: 8px; padding: 10px 18px; font-weight: 500; }
     .btn-primary:hover { background: #312e81; transform: scale(1.03); }
@@ -41,29 +25,12 @@
 
     textarea { border-radius: 10px; padding: 15px; font-size: 15px; width: 100%; height: 200px; resize: vertical; }
 
-    .stream-output {
-      font-size: 16px;
-      white-space: pre-wrap;
-      background: #f9fafb;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 20px;
-      min-height: 100px;
-      border: 1px solid #e5e7eb;
-      line-height: 1.5;
-    }
+    .stream-output { font-size: 16px; white-space: pre-wrap; background: #f9fafb; padding: 15px; border-radius: 10px; margin-top: 20px; min-height: 100px; border: 1px solid #e5e7eb; line-height: 1.5; }
 
-    .spinner {
-      display: none;
-      text-align: center;
-      font-size: 18px;
-      margin-top: 15px;
-      color: #4338ca;
-    }
+    .spinner { display: none; text-align: center; font-size: 18px; margin-top: 15px; color: #4338ca; }
 
     footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 50px; padding-bottom: 30px; }
 
-    /* Tip & History styling */
     #tip-card p { font-size: 15px; line-height: 1.5; }
     #history-card ul { max-height: 200px; overflow-y: auto; }
   </style>
@@ -127,7 +94,6 @@
   <!-- Tip of the Day & Recent History -->
   <div class="container mt-5">
     <div class="row g-4">
-      <!-- Tip of the Day -->
       <div class="col-md-6">
         <div class="card p-4" id="tip-card">
           <h5 class="text-primary">💡 Tip of the Day</h5>
@@ -135,7 +101,6 @@
         </div>
       </div>
 
-      <!-- Recent History -->
       <div class="col-md-6">
         <div class="card p-4" id="history-card">
           <h5 class="text-success">🕒 Recent History</h5>
@@ -158,7 +123,6 @@
     // --- Section Switching ---
     const navLinks = document.querySelectorAll(".nav-link");
     const sections = document.querySelectorAll(".section");
-
     navLinks.forEach(link => {
       link.addEventListener("click", e => {
         e.preventDefault();
@@ -169,6 +133,22 @@
         document.getElementById(`${target}-section`).style.display = "block";
       });
     });
+
+    // --- Refresh History ---
+    async function refreshHistory() {
+      const response = await fetch("/get_history");
+      if (!response.ok) return;
+      const history = await response.json();
+      const historyList = document.getElementById("history-list");
+      historyList.innerHTML = "";
+      history.forEach(entry => {
+        const li = document.createElement("li");
+        li.className = "list-group-item";
+        li.innerHTML = `<strong>${entry.action}</strong> - ${entry.file}
+                        <span class="text-muted">(${entry.time})</span>`;
+        historyList.appendChild(li);
+      });
+    }
 
     // --- File Upload + Streaming Handler ---
     document.querySelectorAll(".upload-form").forEach(form => {
@@ -208,6 +188,9 @@
         spinner.style.display = "none";
         outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
         MathJax.typesetPromise([outputDiv]);
+
+        // Refresh history after output is fully displayed
+        refreshHistory();
       });
     });
 
@@ -228,19 +211,29 @@
       formData.append("custom_prompt", prompt);
 
       const response = await fetch("/stream", { method: "POST", body: formData });
+      if (!response.ok || !response.body) {
+        outputDiv.textContent = "❌ Error: Unable to stream response.";
+        spinner.style.display = "none";
+        return;
+      }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        outputDiv.innerHTML += decoder.decode(value);
+        const chunk = decoder.decode(value, { stream: true });
+        outputDiv.innerHTML += chunk;
         MathJax.typesetPromise([outputDiv]);
       }
 
       spinner.style.display = "none";
       outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
       MathJax.typesetPromise([outputDiv]);
+
+      // Refresh history after output is fully displayed
+      refreshHistory();
     });
   </script>
 </body>
