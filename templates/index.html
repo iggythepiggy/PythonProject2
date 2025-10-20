@@ -62,6 +62,10 @@
     }
 
     footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 50px; padding-bottom: 30px; }
+
+    /* Tip & History styling */
+    #tip-card p { font-size: 15px; line-height: 1.5; }
+    #history-card ul { max-height: 200px; overflow-y: auto; }
   </style>
 
   <!-- MathJax -->
@@ -120,6 +124,34 @@
     </div>
   </div>
 
+  <!-- Tip of the Day & Recent History -->
+  <div class="container mt-5">
+    <div class="row g-4">
+      <!-- Tip of the Day -->
+      <div class="col-md-6">
+        <div class="card p-4" id="tip-card">
+          <h5 class="text-primary">💡 Tip of the Day</h5>
+          <p id="study-tip" class="text-muted mt-2">{{ tip_of_the_day }}</p>
+        </div>
+      </div>
+
+      <!-- Recent History -->
+      <div class="col-md-6">
+        <div class="card p-4" id="history-card">
+          <h5 class="text-success">🕒 Recent History</h5>
+          <ul id="history-list" class="list-group list-group-flush small">
+            {% for entry in recent_history %}
+              <li class="list-group-item">
+                <strong>{{ entry.action }}</strong> - {{ entry.file }}
+                <span class="text-muted">({{ entry.time }})</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer>Made with ⚡ by StudySpark</footer>
 
   <script>
@@ -170,7 +202,7 @@
           if (done) break;
           const chunk = decoder.decode(value, { stream: true });
           outputDiv.innerHTML += chunk;
-          MathJax.typesetPromise([outputDiv]); // Render LaTeX for this chunk
+          MathJax.typesetPromise([outputDiv]);
         }
 
         spinner.style.display = "none";

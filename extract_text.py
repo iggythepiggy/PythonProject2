@@ -7,6 +7,7 @@ import pytesseract
 import cv2
 import platform
 import re
+import datetime
 
 # --- Setup ---
 if platform.system() == "Windows":
@@ -21,6 +22,46 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 client = OpenAI()
+
+# --- Recent History (metadata only) ---
+recent_history = []  # list of dicts with action, file/prompt, timestamp
+HISTORY_LIMIT = 5  # keep last 5 entries
+
+def add_to_history(action, file_name_or_prompt):
+    entry = {
+        "action": action,
+        "file": file_name_or_prompt,
+        "time": datetime.datetime.now().strftime("%H:%M")
+    }
+    recent_history.insert(0, entry)  # newest first
+    if len(recent_history) > HISTORY_LIMIT:
+        recent_history.pop()  # remove oldest
+
+# --- Tip of the Day ---
+TIPS = [
+    "Break your study sessions into 25-minute focused intervals.",
+    "Teach someone else what you just learned to reinforce your knowledge.",
+    "Write down questions you have while reading to explore later.",
+    "Summarize concepts in your own words to deepen understanding.",
+    "Review past mistakes to avoid repeating them."
+]
+
+def get_tip_of_the_day():
+    index = datetime.datetime.now().timetuple().tm_yday % len(TIPS)
+    return TIPS[index]
+
+# --- Strip Headers Helper ---
+def strip_headers(text):
+    lines = text.splitlines()
+    filtered = []
+    for line in lines:
+        line = line.strip()
+        if not line:  # skip empty lines
+            continue
+        if any(keyword in line.lower() for keyword in ["name", "date", "classwork", "directions"]):
+            continue
+        filtered.append(line)
+    return " ".join(filtered)
 
 # --- Deduplication Helper ---
 def deduplicate_text(text):
@@ -80,16 +121,6 @@ def preprocess_image_for_ocr(image_path):
 
     return text_cleaned
 
-# --- Chunk Text with dynamic sizes ---
-def chunk_text(text):
-    words = text.split()
-    length = len(words)
-    math_found = contains_math_symbols(text)
-    chunk_size = 15 if length < 30 or math_found else 75 if length < 150 else 150
-
-    for i in range(0, len(words), chunk_size):
-        yield " ".join(words[i:i+chunk_size])
-
 # --- GPT Helpers ---
 def stream_gpt_response(prompt, max_length=500):
     response = client.chat.completions.create(
@@ -111,58 +142,22 @@ EFFICIENCY_INSTRUCTION = (
     "Use Markdown math (`x^2 + y^2 = z^2`) and clear formatting."
 )
 
-# --- Example Problem (preloaded once) ---
-EXAMPLE_PROBLEM_TEXT = """
-Let's break down the problem step-by-step to find the afternoon temperature in Westfield City.
-
-### Problem Statement
-1. The morning temperature in Westfield City was **-2°F**.
-2. Due to a north wind, the temperature dropped by another **8°F** in the afternoon.
-
-We need to find the afternoon temperature.
-
-### Step1: Understand Temperature Changes
-The key aspect of this problem is how temperature changes work. A drop in temperature means we are subtracting from the initial temperature.
-
-### Step2: Set Up the Equation
-The morning temperature is **-2°F** and it drops by **8°F**. To find the afternoon temperature:
-
-\\[
-T_{\\text{afternoon}} = T_{\\text{morning}} - \\text{drop}
-\\]
-
-Substituting values:
-
-\\[
-T_{\\text{afternoon}} = -2°F - 8°F
-\\]
-
-### Step3: Perform the Calculation
-\\[
-T_{\\text{afternoon}} = -2 - 8 = -10°F
-\\]
-
-### Summary
-The afternoon temperature in Westfield City is **-10°F**.
-
-### Final Solution
-\\[
-\\boxed{-10°F}
-\\]
-"""
-
 @app.route("/stream", methods=["POST"])
 def stream_text():
     file = request.files.get("text_file")
+    user_question = request.form.get("custom_prompt", "").strip()
+    action = request.form.get("action", "summarize").lower()
+
+    # --- Add to recent history ---
+    history_name = file.filename if file else (user_question if user_question else "No Name")
+    add_to_history(action.capitalize(), history_name)
+
     if not file:
         return "No file uploaded", 400
 
     file_ext = file.filename.split(".")[-1].lower()
     file_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
     file.save(file_path)
-
-    action = request.form.get("action", "summarize").lower()
-    user_question = request.form.get("custom_prompt", "").strip()
 
     def generate():
         # Read file content
@@ -185,20 +180,23 @@ def stream_text():
         # Combine pages and deduplicate
         full_text = " ".join(deduplicate_text(p) for p in pages)
 
-        # Prepend example problem once
-        full_prompt = f"{EXAMPLE_PROBLEM_TEXT}\n\nNow process the following text:\n{full_text}"
+        # Debug print
+        print("===FULL_TEXT===")
+        print(full_text)
+        print("===============")
 
+        # Build GPT prompt based on action
         if action == "summarize":
-            prompt = f"{EFFICIENCY_INSTRUCTION}\nSummarize clearly:\n{full_prompt}"
+            prompt = f"{EFFICIENCY_INSTRUCTION}\nSummarize clearly:\n{full_text}"
         elif action == "solve":
-            prompt = f"{EFFICIENCY_INSTRUCTION}\nSolve step-by-step:\n{full_prompt}"
+            prompt = f"{EFFICIENCY_INSTRUCTION}\nSolve step-by-step:\n{full_text}"
         elif action == "custom":
             if not user_question:
                 yield "⚠️ No custom prompt provided.\n"
                 return
             prompt = f"{EFFICIENCY_INSTRUCTION}\nQuestion: {user_question}\nBased on:\n{full_text}"
         else:
-            prompt = f"{EFFICIENCY_INSTRUCTION}\nSummarize:\n{full_prompt}"
+            prompt = f"{EFFICIENCY_INSTRUCTION}\nSummarize:\n{full_text}"
 
         # Stream GPT response
         for part in stream_gpt_response(prompt):
@@ -210,7 +208,8 @@ def stream_text():
 
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("index.html")
+    tip = get_tip_of_the_day()
+    return render_template("index.html", recent_history=recent_history, tip_of_the_day=tip)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
