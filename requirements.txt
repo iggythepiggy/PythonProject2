@@ -1,6 +1,8 @@
 # Core dependencies
 numpy<2
 annotated-types==0.7.0
+flask-bcrypt
+
 anyio==4.11.0
 asgiref==3.10.0
 blinker==1.9.0
