@@ -1,65 +1,17 @@
-from flask import Flask, render_template, request, Response, jsonify, redirect, url_for, session, flash
+from flask import Flask, render_template, request, Response
 from openai import OpenAI
-import os, PyPDF2, pytesseract, platform, json, datetime, random
+import os, PyPDF2, pytesseract, cv2, platform, json, datetime
 from PIL import Image
-from flask_bcrypt import Bcrypt
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-import sqlite3
+from flask import jsonify
 
-# --- Flask setup ---
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "dev_secret_key")
-bcrypt = Bcrypt(app)
-login_manager = LoginManager(app)
-login_manager.login_view = "login"
-
-# OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# --- Database setup ---
-DB_FILE = "users.db"
-def init_db():
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL
-            )
-        """)
-init_db()
+# --- Setup for Tesseract ---
+if platform.system() == "Windows":
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-# --- User class ---
-class User(UserMixin):
-    def __init__(self, id, username, password):
-        self.id = id
-        self.username = username
-        self.password = password
-
-def get_user_by_username(username):
-    with sqlite3.connect(DB_FILE) as conn:
-        cur = conn.cursor()
-        cur.execute("SELECT id, username, password FROM users WHERE username=?", (username,))
-        row = cur.fetchone()
-        return User(*row) if row else None
-
-def get_user_by_id(user_id):
-    with sqlite3.connect(DB_FILE) as conn:
-        cur = conn.cursor()
-        cur.execute("SELECT id, username, password FROM users WHERE id=?", (user_id,))
-        row = cur.fetchone()
-        return User(*row) if row else None
-
-def add_user(username, password):
-    hashed_pw = bcrypt.generate_password_hash(password).decode("utf-8")
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_pw))
-
-@login_manager.user_loader
-def load_user(user_id):
-    return get_user_by_id(user_id)
-
-# --- Study tips ---
+# --- Tip of the day list ---
 TIPS = [
     "Break big tasks into smaller chunks for better focus.",
     "Review your notes after class — not just before tests.",
@@ -68,36 +20,30 @@ TIPS = [
     "Stay hydrated and take short walks during long study sessions."
 ]
 
-# --- Per-user history ---
-HISTORY_DIR = "user_history"
-os.makedirs(HISTORY_DIR, exist_ok=True)
+# --- History storage ---
+HISTORY_FILE = "history.json"
 
-def user_history_file(user_id):
-    return os.path.join(HISTORY_DIR, f"{user_id}.json")
-
-def load_history(user_id):
-    path = user_history_file(user_id)
-    if os.path.exists(path):
-        with open(path, "r") as f:
+def load_history():
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, "r") as f:
             return json.load(f)
     return []
 
-def save_history(user_id, history):
-    path = user_history_file(user_id)
-    with open(path, "w") as f:
-        json.dump(history[-5:], f, indent=2)
+def save_history(history):
+    with open(HISTORY_FILE, "w") as f:
+        json.dump(history[-5:], f, indent=2)  # keep last 5 only
 
-def add_to_history(user_id, action, filename):
-    history = load_history(user_id)
+def add_to_history(action, filename):
+    history = load_history()
     entry = {
         "action": action.capitalize(),
         "file": filename,
         "time": datetime.datetime.now().strftime("%I:%M %p")
     }
     history.append(entry)
-    save_history(user_id, history)
+    save_history(history)
 
-# --- OCR / text extraction ---
+# --- Helper: strip headers like name/date ---
 def strip_headers(text):
     lines = text.splitlines()
     filtered = []
@@ -105,88 +51,43 @@ def strip_headers(text):
         line = line.strip()
         if not line:
             continue
-        if any(k in line.lower() for k in ["name", "date", "classwork", "directions"]):
+        if any(keyword in line.lower() for keyword in ["name", "date", "classwork", "directions"]):
             continue
         filtered.append(line)
     return " ".join(filtered)
 
+# --- OCR / text extraction ---
 def extract_text(file):
-    name = file.filename.lower()
-    if name.endswith(".pdf"):
+    filename = file.filename.lower()
+    if filename.endswith(".pdf"):
         reader = PyPDF2.PdfReader(file)
         return " ".join(page.extract_text() for page in reader.pages)
-    elif name.endswith((".png", ".jpg", ".jpeg")):
-        return strip_headers(pytesseract.image_to_string(Image.open(file)))
+    elif filename.endswith((".png", ".jpg", ".jpeg")):
+        img = Image.open(file)
+        text = pytesseract.image_to_string(img)
+        return strip_headers(text)
     else:
         return file.read().decode("utf-8", errors="ignore")
 
-# --- Auth routes ---
-@app.route("/signup", methods=["GET", "POST"])
-def signup():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        if get_user_by_username(username):
-            flash("Username already exists.", "danger")
-            return redirect(url_for("signup"))
-        add_user(username, password)
-        flash("Account created! Please log in.", "success")
-        return redirect(url_for("login"))
-    return render_template("signup.html")
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for("index"))
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        user = get_user_by_username(username)
-        if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user)
-            flash(f"Welcome back, {user.username}!", "success")
-            return redirect(url_for("index"))
-        flash("Invalid username or password.", "danger")
-    return render_template("login.html")  # <-- must exist
-
-
-@app.route('/logout', methods=['GET', 'POST'])
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('login'))
-
-# --- Main study routes ---
-@app.route("/")
-@login_required
-def index():
-    tip = random.choice(TIPS)
-    history = load_history(current_user.id)
-    return render_template("index.html", tip_of_the_day=tip, recent_history=history, username=current_user.username)
-
-@app.route("/get_history")
-@login_required
-def get_history():
-    return jsonify(load_history(current_user.id))
-
+# --- Streaming route ---
 @app.route("/stream", methods=["POST"])
-@login_required
 def stream():
     action = request.form.get("action", "summarize")
     custom_prompt = request.form.get("custom_prompt", "")
     file = request.files.get("text_file")
 
-    text = extract_text(file) if file else ""
-    add_to_history(current_user.id, action, file.filename if file else "Custom Input")
+    full_text = extract_text(file) if file else ""
+    add_to_history(action, file.filename if file else "Custom Input")
 
+    # Define prompt based on action
     if action == "summarize":
-        prompt = f"Summarize this educational text clearly:\n\n{text}"
+        prompt = f"Summarize this educational text clearly:\n\n{full_text}"
     elif action == "solve":
-        prompt = f"Solve and explain this educational question step-by-step:\n\n{text}"
+        prompt = f"Solve and explain this educational question step-by-step:\n\n{full_text}"
     elif action == "custom":
-        prompt = f"{custom_prompt}\n\nRelevant context:\n{text}"
+        prompt = f"{custom_prompt}\n\nRelevant context:\n{full_text}"
     else:
-        prompt = text
+        prompt = full_text
 
     def generate():
         stream = client.chat.completions.create(
@@ -204,7 +105,18 @@ def stream():
 
     return Response(generate(), mimetype="text/plain")
 
-# --- Run app ---
+# --- Main page ---
+@app.route("/")
+def index():
+    import random
+    tip = random.choice(TIPS)
+    history = load_history()
+    return render_template("index.html", tip_of_the_day=tip, recent_history=history)
+@app.route("/get_history")
+def get_history():
+    history = load_history()
+    return jsonify(history)
+
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(debug=True, host="0.0.0.0", port=5000)
