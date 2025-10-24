@@ -45,14 +45,41 @@
   <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid px-4">
       <a class="navbar-brand" href="#">📘 StudySpark</a>
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link active" href="#" data-section="summarize">Summarize</a></li>
-        <li class="nav-item"><a class="nav-link" href="#" data-section="solve">Solve</a></li>
-        <li class="nav-item"><a class="nav-link" href="#" data-section="custom">Custom Prompt</a></li>
-      </ul>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link active" href="#" data-section="summarize">Summarize</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-section="solve">Solve</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-section="custom">Custom Prompt</a></li>
+        </ul>
+
+        <!-- Right side: Login/Logout -->
+        <ul class="navbar-nav ms-auto">
+          {% if current_user.is_authenticated %}
+            <li class="nav-item">
+              <span class="nav-link text-success">Welcome, {{ current_user.username }}</span>
+            </li>
+            <li class="nav-item">
+              <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+                <button type="submit" class="nav-link btn btn-link text-danger p-0">Logout</button>
+              </form>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link text-primary" href="{{ url_for('login') }}">Login</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-primary" href="{{ url_for('signup') }}">Sign Up</a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
     </div>
   </nav>
 
+  <!-- Main content (Summarize / Solve / Custom) -->
   <div class="container">
     <!-- Summarize Section -->
     <div id="summarize-section" class="card section">
