@@ -1,11 +1,10 @@
-from flask import Flask, render_template, request, Response, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, Response, jsonify, redirect, url_for, session, flash
 from openai import OpenAI
-import os, PyPDF2, pytesseract, platform, json, datetime
+import os, PyPDF2, pytesseract, platform, json, datetime, random
 from PIL import Image
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import sqlite3
-import random
 
 # --- Flask setup ---
 app = Flask(__name__)
@@ -14,6 +13,7 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
+# OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # --- Database setup ---
@@ -29,7 +29,7 @@ def init_db():
         """)
 init_db()
 
-# --- Flask-Login User class ---
+# --- User class ---
 class User(UserMixin):
     def __init__(self, id, username, password):
         self.id = id
@@ -127,28 +127,34 @@ def signup():
         username = request.form["username"]
         password = request.form["password"]
         if get_user_by_username(username):
-            return "Username already exists."
+            flash("Username already exists.", "danger")
+            return redirect(url_for("signup"))
         add_user(username, password)
+        flash("Account created! Please log in.", "success")
         return redirect(url_for("login"))
     return render_template("signup.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("index"))
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
         user = get_user_by_username(username)
         if user and bcrypt.check_password_hash(user.password, password):
             login_user(user)
+            flash(f"Welcome back, {user.username}!", "success")
             return redirect(url_for("index"))
-        return "Invalid credentials."
-    return render_template("login.html")
+        flash("Invalid username or password.", "danger")
+    return render_template("login.html")  # <-- must exist
 
-@app.route("/logout")
+
+@app.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("login"))
+    return redirect(url_for('login'))
 
 # --- Main study routes ---
 @app.route("/")
@@ -198,6 +204,7 @@ def stream():
 
     return Response(generate(), mimetype="text/plain")
 
+# --- Run app ---
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)

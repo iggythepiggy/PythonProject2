@@ -63,7 +63,9 @@
             <span class="nav-link text-success">Welcome, {{ current_user.username }}</span>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-danger" href="{{ url_for('logout') }}">Logout</a>
+            <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+              <button type="submit" class="nav-link btn btn-link text-danger p-0">Logout</button>
+            </form>
           </li>
         {% else %}
           <li class="nav-item">
@@ -78,188 +80,105 @@
   </div>
 </nav>
 
-  <div class="container">
-    <!-- Summarize Section -->
-    <div id="summarize-section" class="card section">
-      <h3 class="mb-3 text-center text-primary">✨ Summarize</h3>
-      <form class="upload-form" data-action="summarize" enctype="multipart/form-data">
-        <label class="form-label fw-semibold">Upload your document</label>
-        <input type="file" class="form-control mb-3" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
-        <button type="submit" class="btn btn-primary w-100">Summarize File</button>
-      </form>
-      <div id="summarize-spinner" class="spinner">⚡ Processing...</div>
-      <div id="summarize-output" class="stream-output"></div>
-    </div>
-
-    <!-- Solve Section -->
-    <div id="solve-section" class="card section" style="display:none;">
-      <h3 class="mb-3 text-center text-success">🧩 Solve & Explain</h3>
-      <form class="upload-form" data-action="solve" enctype="multipart/form-data">
-        <label class="form-label fw-semibold">Upload a problem sheet or image</label>
-        <input type="file" class="form-control mb-3" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
-        <button type="submit" class="btn btn-success w-100">Solve & Explain</button>
-      </form>
-      <div id="solve-spinner" class="spinner">⚡ Processing...</div>
-      <div id="solve-output" class="stream-output"></div>
-    </div>
-
-    <!-- Custom Prompt Section -->
-    <div id="custom-section" class="card section" style="display:none;">
-      <h3 class="mb-3 text-center text-secondary">🧠 Custom Prompt</h3>
-      <textarea id="custom-prompt" placeholder="Type your own question or prompt here..."></textarea>
-      <div class="mt-3 d-flex gap-2">
-        <input type="file" id="custom-file" class="form-control" accept=".pdf,.txt,.jpeg,.jpg,.png">
-        <button id="custom-btn" class="btn btn-primary w-25">Run</button>
-      </div>
-      <div id="custom-spinner" class="spinner">⚡ Processing...</div>
-      <div id="custom-output" class="stream-output"></div>
-    </div>
+<div class="container">
+  <!-- Summarize Section -->
+  <div id="summarize-section" class="card section">
+    <h3 class="mb-3 text-center text-primary">✨ Summarize</h3>
+    <form class="upload-form" data-action="summarize" enctype="multipart/form-data">
+      <label class="form-label fw-semibold">Upload your document</label>
+      <input type="file" class="form-control mb-3" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
+      <button type="submit" class="btn btn-primary w-100">Summarize File</button>
+    </form>
+    <div id="summarize-spinner" class="spinner">⚡ Processing...</div>
+    <div id="summarize-output" class="stream-output"></div>
   </div>
 
-  <!-- Tip of the Day & Recent History -->
-  <div class="container mt-5">
-    <div class="row g-4">
-      <div class="col-md-6">
-        <div class="card p-4" id="tip-card">
-          <h5 class="text-primary">💡 Tip of the Day</h5>
-          <p id="study-tip" class="text-muted mt-2">{{ tip_of_the_day }}</p>
-        </div>
-      </div>
+  <!-- Solve Section -->
+  <div id="solve-section" class="card section" style="display:none;">
+    <h3 class="mb-3 text-center text-success">🧩 Solve & Explain</h3>
+    <form class="upload-form" data-action="solve" enctype="multipart/form-data">
+      <label class="form-label fw-semibold">Upload a problem sheet or image</label>
+      <input type="file" class="form-control mb-3" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
+      <button type="submit" class="btn btn-success w-100">Solve & Explain</button>
+    </form>
+    <div id="solve-spinner" class="spinner">⚡ Processing...</div>
+    <div id="solve-output" class="stream-output"></div>
+  </div>
 
-      <div class="col-md-6">
-        <div class="card p-4" id="history-card">
-          <h5 class="text-success">🕒 Recent History</h5>
-          <ul id="history-list" class="list-group list-group-flush small">
-            {% for entry in recent_history %}
-              <li class="list-group-item">
-                <strong>{{ entry.action }}</strong> - {{ entry.file }}
-                <span class="text-muted">({{ entry.time }})</span>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
+  <!-- Custom Prompt Section -->
+  <div id="custom-section" class="card section" style="display:none;">
+    <h3 class="mb-3 text-center text-secondary">🧠 Custom Prompt</h3>
+    <textarea id="custom-prompt" placeholder="Type your own question or prompt here..."></textarea>
+    <div class="mt-3 d-flex gap-2">
+      <input type="file" id="custom-file" class="form-control" accept=".pdf,.txt,.jpeg,.jpg,.png">
+      <button id="custom-btn" class="btn btn-primary w-25">Run</button>
+    </div>
+    <div id="custom-spinner" class="spinner">⚡ Processing...</div>
+    <div id="custom-output" class="stream-output"></div>
+  </div>
+</div>
+
+<!-- Tip of the Day & Recent History -->
+<div class="container mt-5">
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card p-4" id="tip-card">
+        <h5 class="text-primary">💡 Tip of the Day</h5>
+        <p id="study-tip" class="text-muted mt-2">{{ tip_of_the_day }}</p>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card p-4" id="history-card">
+        <h5 class="text-success">🕒 Recent History</h5>
+        <ul id="history-list" class="list-group list-group-flush small">
+          {% for entry in recent_history %}
+            <li class="list-group-item">
+              <strong>{{ entry.action }}</strong> - {{ entry.file }}
+              <span class="text-muted">({{ entry.time }})</span>
+            </li>
+          {% endfor %}
+        </ul>
       </div>
     </div>
   </div>
+</div>
 
-  <footer>Made with ⚡ by StudySpark</footer>
+<footer>Made with ⚡ by StudySpark</footer>
 
-  <script>
-    // --- Section Switching ---
-    const navLinks = document.querySelectorAll(".nav-link");
-    const sections = document.querySelectorAll(".section");
-    navLinks.forEach(link => {
-      link.addEventListener("click", e => {
-        e.preventDefault();
-        navLinks.forEach(l => l.classList.remove("active"));
-        link.classList.add("active");
-        const target = link.dataset.section;
-        sections.forEach(sec => sec.style.display = "none");
-        document.getElementById(`${target}-section`).style.display = "block";
-      });
+<script>
+  // --- Section Switching ---
+  const navLinks = document.querySelectorAll(".nav-link");
+  const sections = document.querySelectorAll(".section");
+  navLinks.forEach(link => {
+    link.addEventListener("click", e => {
+      e.preventDefault();
+      if (!link.dataset.section) return; // Ignore links like login/logout
+      navLinks.forEach(l => l.classList.remove("active"));
+      link.classList.add("active");
+      const target = link.dataset.section;
+      sections.forEach(sec => sec.style.display = "none");
+      document.getElementById(`${target}-section`).style.display = "block";
     });
+  });
 
-    // --- Refresh History ---
-    async function refreshHistory() {
-      const response = await fetch("/get_history");
-      if (!response.ok) return;
-      const history = await response.json();
-      const historyList = document.getElementById("history-list");
-      historyList.innerHTML = "";
-      history.forEach(entry => {
-        const li = document.createElement("li");
-        li.className = "list-group-item";
-        li.innerHTML = `<strong>${entry.action}</strong> - ${entry.file}
-                        <span class="text-muted">(${entry.time})</span>`;
-        historyList.appendChild(li);
-      });
-    }
-
-    // --- File Upload + Streaming Handler ---
-    document.querySelectorAll(".upload-form").forEach(form => {
-      form.addEventListener("submit", async e => {
-        e.preventDefault();
-        const action = form.dataset.action;
-        const file = form.querySelector("input[type=file]").files[0];
-        if (!file) return alert("Please upload a file.");
-
-        const spinner = document.getElementById(`${action}-spinner`);
-        const outputDiv = document.getElementById(`${action}-output`);
-        spinner.style.display = "block";
-        outputDiv.innerHTML = "";
-
-        const formData = new FormData();
-        formData.append("text_file", file);
-        formData.append("action", action);
-
-        const response = await fetch("/stream", { method: "POST", body: formData });
-        if (!response.ok || !response.body) {
-          outputDiv.textContent = "❌ Error: Unable to stream response.";
-          spinner.style.display = "none";
-          return;
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          outputDiv.innerHTML += chunk;
-          MathJax.typesetPromise([outputDiv]);
-        }
-
-        spinner.style.display = "none";
-        outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
-        MathJax.typesetPromise([outputDiv]);
-
-        // Refresh history after output is fully displayed
-        refreshHistory();
-      });
+  // --- Refresh History ---
+  async function refreshHistory() {
+    const response = await fetch("/get_history");
+    if (!response.ok) return;
+    const history = await response.json();
+    const historyList = document.getElementById("history-list");
+    historyList.innerHTML = "";
+    history.forEach(entry => {
+      const li = document.createElement("li");
+      li.className = "list-group-item";
+      li.innerHTML = `<strong>${entry.action}</strong> - ${entry.file}
+                      <span class="text-muted">(${entry.time})</span>`;
+      historyList.appendChild(li);
     });
+  }
 
-    // --- Custom Prompt Handler ---
-    document.getElementById("custom-btn").addEventListener("click", async () => {
-      const prompt = document.getElementById("custom-prompt").value.trim();
-      const file = document.getElementById("custom-file").files[0];
-      if (!prompt && !file) return alert("Enter a prompt or upload a file.");
-
-      const spinner = document.getElementById("custom-spinner");
-      const outputDiv = document.getElementById("custom-output");
-      spinner.style.display = "block";
-      outputDiv.innerHTML = "";
-
-      const formData = new FormData();
-      if (file) formData.append("text_file", file);
-      formData.append("action", "custom");
-      formData.append("custom_prompt", prompt);
-
-      const response = await fetch("/stream", { method: "POST", body: formData });
-      if (!response.ok || !response.body) {
-        outputDiv.textContent = "❌ Error: Unable to stream response.";
-        spinner.style.display = "none";
-        return;
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        outputDiv.innerHTML += chunk;
-        MathJax.typesetPromise([outputDiv]);
-      }
-
-      spinner.style.display = "none";
-      outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
-      MathJax.typesetPromise([outputDiv]);
-
-      // Refresh history after output is fully displayed
-      refreshHistory();
-    });
-  </script>
-</body>
-</html>
+  // --- File Upload + Streaming Handler ---
+  document.querySelectorAll(".upload-form").forEach(form => {
+    form.addEventListener("submit", async e => {
+      e.prevent
