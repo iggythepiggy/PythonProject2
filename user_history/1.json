@@ -1,10 +1,5 @@
 [
   {
-    "action": "Summarize",
-    "file": "Olmec Civilization Classwork Reading and Questions.pdf",
-    "time": "06:36 PM"
-  },
-  {
     "action": "Solve",
     "file": "Screenshot 2025-10-20 110807.png",
     "time": "06:36 PM"
@@ -23,5 +18,10 @@
     "action": "Summarize",
     "file": "Screenshot 2025-10-12 170158.png",
     "time": "06:43 PM"
+  },
+  {
+    "action": "Summarize",
+    "file": "Screenshot 2025-10-12 170158.png",
+    "time": "10:25 AM"
   }
 ]

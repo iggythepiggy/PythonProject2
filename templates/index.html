@@ -62,9 +62,7 @@
               <span class="nav-link text-success">Welcome, {{ current_user.username }}</span>
             </li>
             <li class="nav-item">
-              <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
-                <button type="submit" class="nav-link btn btn-link text-danger p-0">Logout</button>
-              </form>
+              <a class="nav-link text-danger" href="{{ url_for('logout') }}">Logout</a>
             </li>
           {% else %}
             <li class="nav-item">
@@ -148,7 +146,7 @@
 
   <script>
     // --- Section Switching ---
-    const navLinks = document.querySelectorAll(".nav-link");
+    const navLinks = document.querySelectorAll(".nav-link[data-section]");
     const sections = document.querySelectorAll(".section");
     navLinks.forEach(link => {
       link.addEventListener("click", e => {
@@ -215,8 +213,6 @@
         spinner.style.display = "none";
         outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
         MathJax.typesetPromise([outputDiv]);
-
-        // Refresh history after output is fully displayed
         refreshHistory();
       });
     });
@@ -258,8 +254,6 @@
       spinner.style.display = "none";
       outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
       MathJax.typesetPromise([outputDiv]);
-
-      // Refresh history after output is fully displayed
       refreshHistory();
     });
   </script>
