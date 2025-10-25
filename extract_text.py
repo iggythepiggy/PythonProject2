@@ -1,6 +1,6 @@
-from flask import Flask, render_template, request, Response, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, Response, redirect, url_for, session, jsonify, flash
 from openai import OpenAI
-import os, PyPDF2, pytesseract, platform, json, datetime
+import os, PyPDF2, pytesseract, platform, json, datetime, re
 from PIL import Image
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -25,6 +25,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL
             )
         """)
@@ -32,29 +33,42 @@ init_db()
 
 # --- Flask-Login User class ---
 class User(UserMixin):
-    def __init__(self, id, username, password):
+    def __init__(self, id, username, email, password):
         self.id = id
         self.username = username
+        self.email = email
         self.password = password
 
+# --- Database helpers ---
 def get_user_by_username(username):
     with sqlite3.connect(DB_FILE) as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id, username, password FROM users WHERE username=?", (username,))
+        cur.execute("SELECT id, username, email, password FROM users WHERE username=?", (username,))
+        row = cur.fetchone()
+        return User(*row) if row else None
+
+def get_user_by_email(email):
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id, username, email, password FROM users WHERE email=?", (email,))
         row = cur.fetchone()
         return User(*row) if row else None
 
 def get_user_by_id(user_id):
     with sqlite3.connect(DB_FILE) as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id, username, password FROM users WHERE id=?", (user_id,))
+        cur.execute("SELECT id, username, email, password FROM users WHERE id=?", (user_id,))
         row = cur.fetchone()
         return User(*row) if row else None
 
-def add_user(username, password):
+def add_user(username, email, password):
     hashed_pw = bcrypt.generate_password_hash(password).decode("utf-8")
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_pw))
+    try:
+        with sqlite3.connect(DB_FILE) as conn:
+            conn.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, hashed_pw))
+        return True
+    except sqlite3.IntegrityError:
+        return False  # Username or email already exists
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -64,7 +78,7 @@ def load_user(user_id):
 if platform.system() == "Windows":
     pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-# --- Tip of the day list ---
+# --- Tip of the day ---
 TIPS = [
     "Break big tasks into smaller chunks for better focus.",
     "Review your notes after class — not just before tests.",
@@ -73,7 +87,7 @@ TIPS = [
     "Stay hydrated and take short walks during long study sessions."
 ]
 
-# --- Per-user history ---
+# --- User history (local JSON storage) ---
 HISTORY_DIR = "user_history"
 os.makedirs(HISTORY_DIR, exist_ok=True)
 
@@ -102,7 +116,7 @@ def add_to_history(user_id, action, filename):
     history.append(entry)
     save_history(user_id, history)
 
-# --- Helper: strip headers like name/date ---
+# --- Helper to strip headers ---
 def strip_headers(text):
     lines = text.splitlines()
     filtered = []
@@ -115,7 +129,7 @@ def strip_headers(text):
         filtered.append(line)
     return " ".join(filtered)
 
-# --- OCR / text extraction ---
+# --- OCR / Text extraction ---
 def extract_text(file):
     filename = file.filename.lower()
     if filename.endswith(".pdf"):
@@ -132,33 +146,62 @@ def extract_text(file):
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        if get_user_by_username(username):
-            return "Username already exists."
-        add_user(username, password)
+        username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        # Validation
+        if not username or not email or not password or not confirm_password:
+            flash("Please fill all fields.", "danger")
+            return redirect(url_for("signup"))
+
+        if password != confirm_password:
+            flash("Passwords do not match.", "danger")
+            return redirect(url_for("signup"))
+
+        if len(password) < 8:
+            flash("Password must be at least 8 characters.", "danger")
+            return redirect(url_for("signup"))
+
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            flash("Invalid email address.", "danger")
+            return redirect(url_for("signup"))
+
+        # Attempt to add user
+        success = add_user(username, email, password)
+        if not success:
+            flash("Username or email already exists.", "danger")
+            return redirect(url_for("signup"))
+
+        flash("Account created successfully! Please login.", "success")
         return redirect(url_for("login"))
+
     return render_template("signup.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        user = get_user_by_username(username)
+        username_or_email = request.form.get("username_or_email", "").strip()
+        password = request.form.get("password", "")
+        user = get_user_by_username(username_or_email) or get_user_by_email(username_or_email)
+
         if user and bcrypt.check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for("index"))
-        return "Invalid credentials."
+
+        flash("Invalid credentials.", "danger")
+        return redirect(url_for("login"))
+
     return render_template("login.html")
 
-@app.route("/logout", methods=["GET","POST"])
+@app.route("/logout")
 @login_required
 def logout():
     logout_user()
     return redirect(url_for("login"))
 
-# --- Main study routes ---
+# --- Main study page ---
 @app.route("/")
 @login_required
 def index():
