@@ -6,10 +6,6 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import sqlite3
 import random
-print("OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY"))
-
-print("Working directory:", os.getcwd())
-print("OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY"))
 
 # --- Flask setup ---
 app = Flask(__name__)
@@ -34,6 +30,19 @@ def init_db():
             )
         """)
 init_db()
+
+# --- Feedback JSON ---
+FEEDBACK_FILE = "feedback.json"
+
+def load_feedback():
+    if os.path.exists(FEEDBACK_FILE):
+        with open(FEEDBACK_FILE, "r") as f:
+            return json.load(f)
+    return []
+
+def save_feedback(feedback_list):
+    with open(FEEDBACK_FILE, "w") as f:
+        json.dump(feedback_list, f, indent=2)
 
 # --- Flask-Login User class ---
 class User(UserMixin):
@@ -80,7 +89,7 @@ def load_user(user_id):
 
 # --- Setup for Tesseract ---
 if platform.system() == "Windows":
-    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 
 # --- Tip of the day ---
 TIPS = [
@@ -155,24 +164,19 @@ def signup():
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
 
-        # Validation
         if not username or not email or not password or not confirm_password:
             flash("Please fill all fields.", "danger")
             return redirect(url_for("signup"))
-
         if password != confirm_password:
             flash("Passwords do not match.", "danger")
             return redirect(url_for("signup"))
-
         if len(password) < 8:
             flash("Password must be at least 8 characters.", "danger")
             return redirect(url_for("signup"))
-
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             flash("Invalid email address.", "danger")
             return redirect(url_for("signup"))
 
-        # Attempt to add user
         success = add_user(username, email, password)
         if not success:
             flash("Username or email already exists.", "danger")
@@ -218,6 +222,7 @@ def index():
 def get_history_route():
     return jsonify(load_history(current_user.id))
 
+# --- Stream educational AI responses ---
 @app.route("/stream", methods=["POST"])
 @login_required
 def stream():
@@ -238,7 +243,7 @@ def stream():
         prompt = text
 
     def generate():
-        stream = client.chat.completions.create(
+        stream_resp = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are StudySpark, a clear and accurate educational assistant."},
@@ -246,12 +251,29 @@ def stream():
             ],
             stream=True
         )
-        for chunk in stream:
+        for chunk in stream_resp:
             delta = chunk.choices[0].delta.content
             if delta:
                 yield delta
 
     return Response(generate(), mimetype="text/plain")
+
+# --- Feedback route ---
+@app.route("/feedback", methods=["POST"])
+@login_required
+def feedback():
+    choice = request.form.get("feedback")
+    response_text = request.form.get("response_text")
+
+    feedback_list = load_feedback()
+    feedback_list.append({
+        "user_id": current_user.id,
+        "response_text": response_text,
+        "feedback": choice,
+        "timestamp": datetime.datetime.now().isoformat()
+    })
+    save_feedback(feedback_list)
+    return jsonify({"status": "ok"})
 
 # --- Run server ---
 if __name__ == "__main__":

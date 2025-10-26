@@ -1,11 +1,6 @@
 [
   {
     "action": "Solve",
-    "file": "Screenshot 2025-10-25 162341.png",
-    "time": "04:23 PM"
-  },
-  {
-    "action": "Solve",
     "file": "Screenshot 2025-10-25 162428.png",
     "time": "04:24 PM"
   },
@@ -21,6 +16,11 @@
   },
   {
     "action": "Custom",
+    "file": "North American Cultural Regions Station Documents.pdf",
+    "time": "06:25 PM"
+  },
+  {
+    "action": "Summarize",
     "file": "North American Cultural Regions Station Documents.pdf",
     "time": "06:25 PM"
   }

@@ -33,6 +33,21 @@
 
     #tip-card p { font-size: 15px; line-height: 1.5; }
     #history-card ul { max-height: 200px; overflow-y: auto; }
+
+    /* --- Sparky Popup --- */
+    #sparky-popup {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    #sparky-popup img { vertical-align: middle; margin-right: 10px; }
+    #sparky-popup button { margin-right: 5px; }
   </style>
 
   <!-- MathJax -->
@@ -142,6 +157,17 @@
     </div>
   </div>
 
+  <!-- Sparky Feedback Popup -->
+  <div id="sparky-popup">
+    <img src="/static/sparky.png" alt="Sparky Avatar" width="60">
+    <span>How did you like this response?</span>
+    <div style="margin-top:10px;">
+      <button onclick="sendFeedback('Good')">Good</button>
+      <button onclick="sendFeedback('Not Specific')">Not Specific</button>
+      <button onclick="sendFeedback('Completely Different')">Completely Different</button>
+    </div>
+  </div>
+
   <footer>Made with ⚡ by StudySpark</footer>
 
   <script>
@@ -214,6 +240,10 @@
         outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
         MathJax.typesetPromise([outputDiv]);
         refreshHistory();
+
+        // --- Show Sparky Feedback Popup ---
+        const popup = document.getElementById("sparky-popup");
+        popup.style.display = "block";
       });
     });
 
@@ -255,7 +285,21 @@
       outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
       MathJax.typesetPromise([outputDiv]);
       refreshHistory();
+
+      // --- Show Sparky Feedback Popup ---
+      document.getElementById("sparky-popup").style.display = "block";
     });
+
+    // --- Sparky Feedback ---
+    function sendFeedback(type) {
+      fetch("/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feedback: type })
+      });
+      document.getElementById("sparky-popup").style.display = "none";
+      alert("Thanks for your feedback! ✅");
+    }
   </script>
 </body>
 </html>
