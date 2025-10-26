@@ -6,6 +6,10 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import sqlite3
 import random
+print("OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY"))
+
+print("Working directory:", os.getcwd())
+print("OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY"))
 
 # --- Flask setup ---
 app = Flask(__name__)
