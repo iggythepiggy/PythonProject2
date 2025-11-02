@@ -2,101 +2,66 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sign Up - StudySpark</title>
+  <title>Create Account | StudySpark</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      background: linear-gradient(135deg, #eef2ff, #f9fafb);
+      background: linear-gradient(120deg, #f9fafb, #eef2ff);
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
     }
-
-    .signup-card {
+    .signup-box {
       background: white;
-      padding: 40px 30px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-      transition: transform 0.2s;
-    }
-    .signup-card:hover {
-      transform: translateY(-3px);
-    }
-
-    .signup-card h1 {
-      font-size: 28px;
-      color: #4338ca;
-      margin-bottom: 10px;
-    }
-
-    .signup-card p.tagline {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 30px;
-    }
-
-    input.form-control {
-      border-radius: 10px;
-      margin-bottom: 20px;
-      transition: all 0.2s;
-    }
-    input.form-control:focus {
-      border-color: #4338ca;
-      box-shadow: 0 0 5px rgba(67, 56, 202, 0.3);
-    }
-
-    .btn-success {
-      background: #16a34a;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 20px;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-    .btn-success:hover {
-      background: #15803d;
-      transform: scale(1.03);
-    }
-
-    .footer-text {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #6b7280;
-    }
-
-    a.link-personal {
-      color: #4338ca;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    a.link-personal:hover {
-      text-decoration: underline;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      width: 380px;
     }
   </style>
 </head>
 <body>
-  <div class="signup-card">
-    <h1>📘 StudySpark</h1>
-    <p class="tagline">Start your learning adventure ⚡</p>
+  <div class="signup-box">
+    <h4 class="mb-3 text-center text-primary">Create Your StudySpark Account</h4>
 
-    <form action="{{ url_for('signup') }}" method="POST">
-      <input type="text" class="form-control" name="username" placeholder="Pick a cool username 👌" required>
-      <input type="password" class="form-control" name="password" placeholder="Choose a secure password 🔒" required>
-      <button type="submit" class="btn btn-success w-100">Create My Account 🚀</button>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('signup') }}">
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" name="confirm_password" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Sign Up</button>
     </form>
 
-    <p class="footer-text mt-3">
-      Already have an account?
-      <a href="{{ url_for('login') }}" class="link-personal">Login here</a> ✨
-    </p>
-    <p class="footer-text mt-1">
-      Made with ⚡ by StudySpark
-    </p>
+    <div class="text-center mt-3">
+      <small>Already have an account? <a href="{{ url_for('login') }}">Log In</a></small>
+    </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

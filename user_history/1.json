@@ -1,27 +1,27 @@
 [
   {
-    "action": "Solve",
-    "file": "Screenshot 2025-10-25 162428.png",
+    "action": "Summarize",
+    "file": "Olmec Visualization Homework Activity.pdf",
+    "time": "06:02 PM"
+  },
+  {
+    "action": "Summarize",
+    "file": "Olmec Visualization Homework Activity.pdf",
+    "time": "04:08 PM"
+  },
+  {
+    "action": "Summarize",
+    "file": "Olmec Visualization Homework Activity.pdf",
+    "time": "04:23 PM"
+  },
+  {
+    "action": "Summarize",
+    "file": "North American Cultural Regions Station Documents.pdf",
     "time": "04:24 PM"
   },
   {
-    "action": "Summarize",
-    "file": "North American Cultural Regions Station Documents.pdf",
-    "time": "06:22 PM"
-  },
-  {
-    "action": "Solve",
-    "file": "Screenshot 2025-10-25 161833.png",
-    "time": "06:23 PM"
-  },
-  {
     "action": "Custom",
-    "file": "North American Cultural Regions Station Documents.pdf",
-    "time": "06:25 PM"
-  },
-  {
-    "action": "Summarize",
-    "file": "North American Cultural Regions Station Documents.pdf",
-    "time": "06:25 PM"
+    "file": "Screenshot 2025-11-01 081857.png",
+    "time": "08:21 AM"
   }
 ]

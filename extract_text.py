@@ -4,8 +4,7 @@ import os, PyPDF2, pytesseract, platform, json, datetime, re
 from PIL import Image
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-import sqlite3
-import random
+import sqlite3, random
 
 # --- Flask setup ---
 app = Flask(__name__)
@@ -14,7 +13,8 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# NOTE: replace with your OpenAI usage or mock if not using in dev
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
 
 # --- Database setup ---
 DB_FILE = "users.db"
@@ -147,13 +147,20 @@ def extract_text(file):
     filename = file.filename.lower()
     if filename.endswith(".pdf"):
         reader = PyPDF2.PdfReader(file)
-        return " ".join(page.extract_text() for page in reader.pages)
+        full = []
+        for page in reader.pages:
+            text = page.extract_text() or ""
+            full.append(text)
+        return " ".join(full)
     elif filename.endswith((".png", ".jpg", ".jpeg")):
         img = Image.open(file)
         text = pytesseract.image_to_string(img)
         return strip_headers(text)
     else:
-        return file.read().decode("utf-8", errors="ignore")
+        try:
+            return file.read().decode("utf-8", errors="ignore")
+        except:
+            return ""
 
 # --- Auth routes ---
 @app.route("/signup", methods=["GET", "POST"])
@@ -196,6 +203,7 @@ def login():
 
         if user and bcrypt.check_password_hash(user.password, password):
             login_user(user)
+            flash("Logged in successfully.", "success")
             return redirect(url_for("index"))
 
         flash("Invalid credentials.", "danger")
@@ -207,6 +215,7 @@ def login():
 @login_required
 def logout():
     logout_user()
+    flash("Logged out.", "info")
     return redirect(url_for("login"))
 
 # --- Main study page ---
@@ -243,27 +252,40 @@ def stream():
         prompt = text
 
     def generate():
-        stream_resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are StudySpark, a clear and accurate educational assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            stream=True
-        )
-        for chunk in stream_resp:
-            delta = chunk.choices[0].delta.content
-            if delta:
-                yield delta
+        # If you don't have OpenAI API or want to avoid usage, you can return a mocked stream here.
+        try:
+            stream_resp = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are StudySpark, a clear and accurate educational assistant."},
+                    {"role": "user", "content": prompt}
+                ],
+                stream=True
+            )
+            for chunk in stream_resp:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield delta
+        except Exception as e:
+            # fallback simple response
+            yield "StudySpark (mock): Sorry, OpenAI not available. Here's a mock summary.\n\n"
+            yield (prompt[:1000] if prompt else "No text provided.")
 
     return Response(generate(), mimetype="text/plain")
 
-# --- Feedback route ---
+# --- Feedback route (accepts JSON from the frontend) ---
 @app.route("/feedback", methods=["POST"])
 @login_required
 def feedback():
-    choice = request.form.get("feedback")
-    response_text = request.form.get("response_text")
+    data = None
+    if request.is_json:
+        data = request.get_json()
+    else:
+        # support form submissions too
+        data = request.form.to_dict()
+
+    choice = data.get("feedback") or data.get("feedback_type") or "Unknown"
+    response_text = data.get("response_text") or data.get("extra") or ""
 
     feedback_list = load_feedback()
     feedback_list.append({

@@ -34,26 +34,44 @@
     #tip-card p { font-size: 15px; line-height: 1.5; }
     #history-card ul { max-height: 200px; overflow-y: auto; }
 
-    /* --- Sparky Popup --- */
+    /* --- Sparky Popup (Centered Modal Style) --- */
     #sparky-popup {
       display: none;
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2000;
+      border-radius: 16px;
       background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      z-index: 1000;
+      padding: 25px;
+      width: 400px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+      animation: fadeIn 0.3s ease;
     }
-    #sparky-popup img { vertical-align: middle; margin-right: 10px; }
-    #sparky-popup button { margin-right: 5px; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -60%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+
+    /* Dim background when popup is active */
+    #sparky-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      z-index: 1500;
+    }
+
+    #sparky-popup input { margin-top: 8px; }
+    #sparky-popup button { cursor: pointer; transition: transform 0.1s; }
+    #sparky-popup button:hover { transform: scale(1.05); }
   </style>
 
   <!-- MathJax -->
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script id="MathJax-script" async
-   src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
   <!-- Navbar -->
@@ -99,7 +117,7 @@
       <h3 class="mb-3 text-center text-primary">✨ Summarize</h3>
       <form class="upload-form" data-action="summarize" enctype="multipart/form-data">
         <label class="form-label fw-semibold">Upload your document</label>
-        <input type="file" class="form-control mb-3" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
+        <input type="file" name="text_file" class="form-control mb-3" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
         <button type="submit" class="btn btn-primary w-100">Summarize File</button>
       </form>
       <div id="summarize-spinner" class="spinner">⚡ Processing...</div>
@@ -111,7 +129,7 @@
       <h3 class="mb-3 text-center text-success">🧩 Solve & Explain</h3>
       <form class="upload-form" data-action="solve" enctype="multipart/form-data">
         <label class="form-label fw-semibold">Upload a problem sheet or image</label>
-        <input type="file" class="form-control mb-3" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
+        <input type="file" name="text_file" class="form-control mb-3" accept=".pdf,.txt,.jpeg,.jpg,.png" required>
         <button type="submit" class="btn btn-success w-100">Solve & Explain</button>
       </form>
       <div id="solve-spinner" class="spinner">⚡ Processing...</div>
@@ -123,7 +141,7 @@
       <h3 class="mb-3 text-center text-secondary">🧠 Custom Prompt</h3>
       <textarea id="custom-prompt" placeholder="Type your own question or prompt here..."></textarea>
       <div class="mt-3 d-flex gap-2">
-        <input type="file" id="custom-file" class="form-control" accept=".pdf,.txt,.jpeg,.jpg,.png">
+        <input type="file" id="custom-file" name="text_file" class="form-control" accept=".pdf,.txt,.jpeg,.jpg,.png">
         <button id="custom-btn" class="btn btn-primary w-25">Run</button>
       </div>
       <div id="custom-spinner" class="spinner">⚡ Processing...</div>
@@ -157,20 +175,105 @@
     </div>
   </div>
 
-  <!-- Sparky Feedback Popup -->
-  <div id="sparky-popup">
-    <img src="/static/sparky.png" alt="Sparky Avatar" width="60">
-    <span>How did you like this response?</span>
-    <div style="margin-top:10px;">
-      <button onclick="sendFeedback('Good')">Good</button>
-      <button onclick="sendFeedback('Not Specific')">Not Specific</button>
-      <button onclick="sendFeedback('Completely Different')">Completely Different</button>
+  <!-- Sparky Overlay & Popup -->
+  <div id="sparky-overlay"></div>
+  <div id="sparky-popup" class="card shadow p-3">
+    <div class="d-flex align-items-center mb-2">
+      <img src="/static/sparky.png" alt="Sparky Avatar" width="50" class="me-2 rounded-circle shadow-sm">
+      <strong>How did you like this response?</strong>
     </div>
+
+    <div class="d-grid gap-2 mb-2">
+      <button class="btn btn-sm btn-primary" onclick="sendFeedback('Good')">Good</button>
+      <button class="btn btn-sm btn-warning" id="not-specific-btn">Not Specific</button>
+      <button class="btn btn-sm btn-danger" id="completely-different-btn">Completely Different</button>
+      <button class="btn btn-sm btn-secondary" id="other-btn">Other</button>
+    </div>
+
+    <input type="text" id="myTextbox" class="form-control form-control-sm" style="display:none;" placeholder="Type your feedback...">
+    <button id="textbox-submit-btn" class="btn btn-primary btn-sm mt-2" style="display:none;">Submit</button>
   </div>
 
   <footer>Made with ⚡ by StudySpark</footer>
 
   <script>
+    // --- Sparky Popup Logic ---
+    const textbox = document.getElementById("myTextbox");
+    const textboxSubmitBtn = document.getElementById("textbox-submit-btn");
+    const notSpecificBtn = document.getElementById("not-specific-btn");
+    const completelyDifferentBtn = document.getElementById("completely-different-btn");
+    const otherBtn = document.getElementById("other-btn");
+    const overlay = document.getElementById("sparky-overlay");
+    const popup = document.getElementById("sparky-popup");
+
+    function showTextbox() {
+      textbox.style.display = "block";
+      textbox.focus();
+      textboxSubmitBtn.style.display = "block";
+    }
+
+    [notSpecificBtn, completelyDifferentBtn, otherBtn].forEach(btn => {
+      btn.addEventListener("click", showTextbox);
+    });
+
+    function openPopup() {
+      overlay.style.display = "block";
+      popup.style.display = "block";
+    }
+
+    function closePopup() {
+      overlay.style.display = "none";
+      popup.style.display = "none";
+      textbox.value = "";
+      textbox.style.display = "none";
+      textboxSubmitBtn.style.display = "none";
+    }
+
+    overlay.addEventListener("click", closePopup);
+
+    async function sendFeedback(type) {
+      const text = textbox.style.display === "block" ? textbox.value.trim() : '';
+      try {
+        await fetch("/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ feedback: type, extra: text })
+        });
+        alert("Thanks for your feedback! ✅");
+      } catch (err) {
+        alert("Error sending feedback.");
+        console.error(err);
+      }
+      closePopup();
+    }
+
+    function submitTextboxFeedback() {
+      const text = textbox.value.trim();
+      if (!text) return alert("Please type your feedback.");
+
+      fetch("/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feedback: "Custom", extra: text })
+      })
+      .then(() => {
+        alert("Thanks for your feedback! ✅");
+        closePopup();
+      })
+      .catch(err => {
+        alert("❌ Error sending feedback.");
+        console.error(err);
+      });
+    }
+
+    textboxSubmitBtn.addEventListener("click", submitTextboxFeedback);
+    textbox.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        submitTextboxFeedback();
+      }
+    });
+
     // --- Section Switching ---
     const navLinks = document.querySelectorAll(".nav-link[data-section]");
     const sections = document.querySelectorAll(".section");
@@ -206,7 +309,8 @@
       form.addEventListener("submit", async e => {
         e.preventDefault();
         const action = form.dataset.action;
-        const file = form.querySelector("input[type=file]").files[0];
+        const fileInput = form.querySelector("input[type=file]");
+        const file = fileInput ? fileInput.files[0] : null;
         if (!file) return alert("Please upload a file.");
 
         const spinner = document.getElementById(`${action}-spinner`);
@@ -241,9 +345,7 @@
         MathJax.typesetPromise([outputDiv]);
         refreshHistory();
 
-        // --- Show Sparky Feedback Popup ---
-        const popup = document.getElementById("sparky-popup");
-        popup.style.display = "block";
+        openPopup();
       });
     });
 
@@ -286,20 +388,10 @@
       MathJax.typesetPromise([outputDiv]);
       refreshHistory();
 
-      // --- Show Sparky Feedback Popup ---
-      document.getElementById("sparky-popup").style.display = "block";
+      openPopup();
     });
-
-    // --- Sparky Feedback ---
-    function sendFeedback(type) {
-      fetch("/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ feedback: type })
-      });
-      document.getElementById("sparky-popup").style.display = "none";
-      alert("Thanks for your feedback! ✅");
-    }
   </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
