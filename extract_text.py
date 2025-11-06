@@ -232,6 +232,7 @@ def get_history_route():
     return jsonify(load_history(current_user.id))
 
 # --- Stream educational AI responses ---
+# --- Stream educational AI responses ---
 @app.route("/stream", methods=["POST"])
 @login_required
 def stream():
@@ -251,8 +252,11 @@ def stream():
     else:
         prompt = text
 
+    # --- Initialize AI output accumulator ---
+    ai_output_chunks = []
+    user_id = current_user.id  # capture user id safely BEFORE the generator
+
     def generate():
-        # If you don't have OpenAI API or want to avoid usage, you can return a mocked stream here.
         try:
             stream_resp = client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -265,13 +269,28 @@ def stream():
             for chunk in stream_resp:
                 delta = chunk.choices[0].delta.content
                 if delta:
+                    ai_output_chunks.append(delta)
                     yield delta
         except Exception as e:
-            # fallback simple response
-            yield "StudySpark (mock): Sorry, OpenAI not available. Here's a mock summary.\n\n"
-            yield (prompt[:1000] if prompt else "No text provided.")
+            # fallback if OpenAI API is not available
+            fallback_text = "StudySpark (mock): Sorry, OpenAI not available. Here's a mock summary.\n\n" + (prompt[:1000] if prompt else "No text provided.")
+            ai_output_chunks.append(fallback_text)
+            yield fallback_text
+        finally:
+            # --- Join all chunks into a single string and save to feedback.json ---
+            ai_output_str = "".join(ai_output_chunks)
+            feedback_list = load_feedback()
+            feedback_list.append({
+                "user_id": user_id,
+                "response_text": "",  # keep blank or store frontend response if needed
+                "feedback": "AI Generated",
+                "ai_output": ai_output_str,
+                "timestamp": datetime.datetime.now().isoformat()
+            })
+            save_feedback(feedback_list)
 
     return Response(generate(), mimetype="text/plain")
+
 
 # --- Feedback route (accepts JSON from the frontend) ---
 @app.route("/feedback", methods=["POST"])
@@ -281,21 +300,27 @@ def feedback():
     if request.is_json:
         data = request.get_json()
     else:
-        # support form submissions too
         data = request.form.to_dict()
+        # --- Skip saving entire entry if feedback is "Good" ---
+    if data.get("feedback", "").strip().lower() == "good":
+        print("Skipped saving entire 'Good' feedback entry.")
+        return jsonify({"message": "Skipped 'Good' feedback entry"}), 200
 
     choice = data.get("feedback") or data.get("feedback_type") or "Unknown"
     response_text = data.get("response_text") or data.get("extra") or ""
+    ai_output = data.get("ai_output") or ""  # NEW: include AI output if available
 
     feedback_list = load_feedback()
     feedback_list.append({
         "user_id": current_user.id,
         "response_text": response_text,
         "feedback": choice,
+        "ai_output": ai_output,  # NEW field
         "timestamp": datetime.datetime.now().isoformat()
     })
     save_feedback(feedback_list)
     return jsonify({"status": "ok"})
+
 
 # --- Run server ---
 if __name__ == "__main__":

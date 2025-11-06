@@ -1,68 +1,55 @@
 [
   {
-    "user_id": 1,
-    "response_text": null,
-    "feedback": null,
-    "timestamp": "2025-10-26T18:26:51.767037"
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "Good",
+    "timestamp": "2025-11-03T16:31:05.151642"
   },
   {
-    "user_id": 1,
-    "response_text": null,
-    "feedback": null,
-    "timestamp": "2025-10-28T17:08:45.602599"
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "Good",
+    "timestamp": "2025-11-03T16:32:57.303146"
   },
   {
-    "user_id": 1,
-    "response_text": null,
-    "feedback": null,
-    "timestamp": "2025-10-28T17:10:26.130638"
+    "user_id": 2,
+    "response_text": "The summary was very good and clear and I learned a lot form it",
+    "feedback": "Custom",
+    "timestamp": "2025-11-05T15:54:05.440321"
   },
   {
-    "user_id": 1,
-    "response_text": null,
-    "feedback": null,
-    "timestamp": "2025-10-28T17:15:24.662607"
+    "user_id": 2,
+    "response_text": "REALLY good response clear and understandable",
+    "feedback": "Custom",
+    "ai_output": "",
+    "timestamp": "2025-11-05T16:13:43.048204"
   },
   {
-    "user_id": 1,
-    "response_text": null,
-    "feedback": null,
-    "timestamp": "2025-10-28T17:17:43.098418"
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "AI Generated",
+    "ai_output": "**Columbus/New Spain Study Guide Summary**\n\n**Instructions:** Complete the study guide independently using your notes before the quiz date (11/11/25). The study guide is worth 10 points.\n\n1. **Columbus's First Interactions with the Arawak Peoples:** Describe in two or more sentences how Columbus first encountered the Arawak people, referencing the relevant readings.\n\n2. **Motivations of Columbus and Conquistadors:** Explain why Columbus and other explorers sought new territories and how they justified their violent actions, using two or more sentences from your readings.\n\n3. **Social Classes in New Spain:** Outline the four distinct social classes that existed in New Spain in two or more sentences, based on the provided reading material.\n\n4. **Bartolome de las Casas:** Identify who Bartolome de las Casas was and what he advocated for, summarizing your response in two or more sentences from the readings.\n\n5. **Spanish Missions:** Define what the Spanish \"Missions\" were and their purpose for establishment, articulating your answer in two or more sentences from your readings. \n\n**Note:** Ensure that your responses are detailed and reflect your understanding of the topics discussed in the readings.",
+    "timestamp": "2025-11-05T16:20:29.650843"
   },
   {
-    "user_id": 1,
-    "response_text": null,
-    "feedback": null,
-    "timestamp": "2025-10-28T17:22:27.187492"
+    "user_id": 2,
+    "response_text": "really good response",
+    "feedback": "Custom",
+    "ai_output": "",
+    "timestamp": "2025-11-05T16:20:39.616583"
   },
   {
-    "user_id": 1,
-    "response_text": null,
-    "feedback": null,
-    "timestamp": "2025-10-28T17:40:26.263793"
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "AI Generated",
+    "ai_output": "Below, I have provided step-by-step explanations to help you answer the questions on your study guide regarding Columbus and New Spain. You may use these explanations as references to compose your own responses. \n\n### 1. Columbus\u2019s First Interactions with the Arawak Peoples\n**Step 1**: Identify Columbus\u2019s initial encounters with the Arawak. Columbus arrived in the Bahamas in 1492, where he encountered the Arawak people, who were friendly and welcoming.  \n**Step 2**: Discuss the nature of interactions. Columbus and his crew traded with the Arawak, receiving gold and food in exchange for items like glass beads and tools.  \n**Possible Answer**: Columbus\u2019s first interactions with the Arawak peoples were largely characterized by curiosity and initial hospitality. The Arawak welcomed Columbus and his crew, exchanging goods such as gold and food for European items, indicating a peaceful approach to trade and interaction.\n\n### 2. Motivation and Justification for Exploration by Columbus and Conquistadors\n**Step 1**: Explain their motivations. Columbus and other Conquistadors sought new territories primarily for wealth, particularly gold, and to expand the Spanish Empire.  \n**Step 2**: Explore justifications for their actions. They justified their violent actions often by claiming they were spreading Christianity and \"civilizing\" the indigenous people.  \n**Possible Answer**: Columbus and other Conquistadors were motivated to explore new territories primarily in search of wealth and land, aiming to enhance the power of Spain. They often defended their brutal actions against indigenous populations by asserting a mission to spread Christianity and civilize the 'savages' they encountered.\n\n### 3. The Four Social Classes in New Spain\n**Step 1**: Identify the social classes. In New Spain, the four primary social classes were Peninsulares (Spanish born in Spain), Creoles (Spanish born in the Americas), Mestizos (mixed European and indigenous ancestry), and indigenous peoples.  \n**Step 2**: Describe the importance of these classes. These classes helped establish a rigid social hierarchy that affected rights, privileges, and social interactions.  \n**Possible Answer**: The four social classes in New Spain consisted of Peninsulares, who were Spanish individuals born in Spain and held the highest power; Creoles, who were Spaniards born in the Americas; Mestizos, individuals of mixed European and indigenous descent; and the indigenous peoples, who were often marginalized. This social structure created a distinct hierarchy that influenced individuals' rights and social standing in colonial society.\n\n### 4. Bartolome de las Casas and His Advocacy\n**Step 1**: Introduce Bartolome de las Casas. He was a Spanish Dominican friar, historian, and missionary who arrived in the Americas in 1502.  \n**Step 2**: Explain his arguments. He advocated for the rights of indigenous peoples and argued against the inhumane treatment they received from Spanish colonizers.  \n**Possible Answer**: Bartolome de las Casas was a Spanish Dominican friar and missionary known for his advocacy on behalf of indigenous peoples in the Americas. He argued strongly against their mistreatment and exploitation, advocating for their rights and calling for a more humane approach to colonization by the Spanish.\n\n### 5. The Spanish \"Missions\" and Their Purpose\n**Step 1**: Define what the Spanish missions were. Missions were religious and military outposts established by the Spanish to convert indigenous peoples to Christianity.  \n**Step 2**: Discuss their purpose. Besides conversion, missions aimed to establish Spanish presence and control over the territory, encouraging agricultural development and fostering Spanish culture.  \n**Possible Answer**: The Spanish \"missions\" were established as religious outposts aimed at converting indigenous peoples to Christianity and promoting Spanish culture. They served as a means to extend Spanish influence and control over the territories, while also working to assimilate native populations into European lifestyles.\n\nFeel free to adapt these guidelines to fit your writing style and ensure you understand each point well!",
+    "timestamp": "2025-11-06T07:40:12.136219"
   },
   {
-    "user_id": 1,
-    "response_text": null,
-    "feedback": null,
-    "timestamp": "2025-10-28T18:01:45.209102"
-  },
-  {
-    "user_id": 1,
-    "response_text": null,
-    "feedback": null,
-    "timestamp": "2025-10-29T16:23:38.603058"
-  },
-  {
-    "user_id": 1,
-    "response_text": null,
-    "feedback": null,
-    "timestamp": "2025-10-29T16:24:36.222209"
-  },
-  {
-    "user_id": 1,
-    "response_text": null,
-    "feedback": null,
-    "timestamp": "2025-11-01T08:21:06.958941"
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "AI Generated",
+    "ai_output": "**Columbus/New Spain Study Guide Summary**\n\n**Instructions:**\nComplete the study guide using your notes. It should be done independently and submitted before the quiz on November 11, 2025. This guide is worth 10 points.\n\n**Questions to Answer:**\n\n1. **Columbus's Interactions with Arawak Peoples:**\n   Describe Columbus\u2019s initial encounters with the Arawak tribes in detail, focusing on their interactions and any significant events.\n\n2. **Motivations for Exploration:**\n   Explain the reasons Columbus and other conquistadors sought new territories. Discuss how they rationalized the violent actions taken during their conquests.\n\n3. **Social Classes in New Spain:**\n   Identify and explain the four social classes that existed in New Spain, outlining their characteristics and roles within society.\n\n4. **Bartolom\u00e9 de las Casas:**\n   Provide information about Bartolom\u00e9 de las Casas, including who he was and the arguments he made regarding indigenous peoples and their treatment.\n\n5. **Spanish Missions:**\n   Define what the Spanish \"Missions\" were, detailing their purpose and the reasons for their establishment in the New World.\n\n**Note:** Each response should be written in two or more complete sentences.",
+    "timestamp": "2025-11-06T07:48:32.971054"
   }
 ]
