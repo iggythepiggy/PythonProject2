@@ -51,5 +51,144 @@
     "feedback": "AI Generated",
     "ai_output": "**Columbus/New Spain Study Guide Summary**\n\n**Instructions:**\nComplete the study guide using your notes. It should be done independently and submitted before the quiz on November 11, 2025. This guide is worth 10 points.\n\n**Questions to Answer:**\n\n1. **Columbus's Interactions with Arawak Peoples:**\n   Describe Columbus\u2019s initial encounters with the Arawak tribes in detail, focusing on their interactions and any significant events.\n\n2. **Motivations for Exploration:**\n   Explain the reasons Columbus and other conquistadors sought new territories. Discuss how they rationalized the violent actions taken during their conquests.\n\n3. **Social Classes in New Spain:**\n   Identify and explain the four social classes that existed in New Spain, outlining their characteristics and roles within society.\n\n4. **Bartolom\u00e9 de las Casas:**\n   Provide information about Bartolom\u00e9 de las Casas, including who he was and the arguments he made regarding indigenous peoples and their treatment.\n\n5. **Spanish Missions:**\n   Define what the Spanish \"Missions\" were, detailing their purpose and the reasons for their establishment in the New World.\n\n**Note:** Each response should be written in two or more complete sentences.",
     "timestamp": "2025-11-06T07:48:32.971054"
+  },
+  {
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "AI Generated",
+    "ai_output": "**Olmec Visualization Activity Summary**\n\n**Instructions:**\nYou will read about the Olmec civilization and then illustrate what the city of San Lorenzo looked like 3,600 years ago. Your drawing must include and label five specific features mentioned in the reading. This assignment is worth 5 points.\n\n**Key Points About San Lorenzo:**\n- San Lorenzo was the first city in the Americas, created by the Olmec people in present-day Mexico.\n- The city was filled with distinctive art, including unique figures depicted on walls, pottery, tiles, and jewelry.\n- Some figures resemble people or animals, such as those that look part jaguar and part human.\n- Olmec beauty standards included practices like head shaping in infants and elaborate dental modifications.\n- Notable features of the city include giant stone heads and thrones on a central platform, each towering over a person and weighing up to 20 tons. These stone structures display various expressive faces, creating a feeling of being observed as you walk through the city.\n\n**Drawing Task:**\nCreate a visual representation of San Lorenzo, including the specific details derived from the text.",
+    "timestamp": "2025-11-07T07:45:11.392750"
+  },
+  {
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "AI Generated",
+    "ai_output": "To solve the given questions about the ages of team members, we'll analyze the data provided for each team step-by-step.\n\n**Step 1: Analyze the mean age of each team.**\n\n- Team A: Mean age = 42\n- Team B: Mean age = 44\n- Team C: Mean age = 36\n- Team D: Mean age = 41\n\n**(a) Identify the team with the youngest members on average.**\n\nTo find the team with the youngest average age, we can simply compare the mean ages:\n\n- Team A: 42 years\n- Team B: 44 years\n- Team C: 36 years (youngest)\n- Team D: 41 years\n\n**Answer for (a): Team C** is the youngest on average, with a mean age of 36.\n\n---\n\n**Step 2: Analyze the range of ages for each team to determine variability.**\n\n- Team A: Range = 20\n- Team B: Range = 21\n- Team C: Range = 26\n- Team D: Range = 19\n\nThe range indicates the amount of variability in ages; a smaller range indicates less variability in ages.\n\n**(b) Identify which team's ages have the least variability based on the range.**\n\n- Team A: Range = 20\n- Team B: Range = 21\n- Team C: Range = 26\n- Team D: Range = 19 (least variable)\n\n**Answer for (b): Team D** has the least variability in ages, with a range of 19.\n\n---\n\n**Final Answers:**\n(a) Team C - youngest members on average.\n(b) Team D - least variability in ages.",
+    "timestamp": "2025-11-07T07:47:04.355996"
+  },
+  {
+    "user_id": 2,
+    "feedback": "Custom",
+    "ai_output": "",
+    "timestamp": "2025-11-07T07:47:27.080254"
+  },
+  {
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "AI Generated",
+    "ai_output": "To answer the questions regarding the ages of the members of the four teams, we will analyze the information provided.\n\n### Team Ages Summary:\n- **Team A**: Mean age = 42, Range = 20\n- **Team B**: Mean age = 44, Range = 21\n- **Team C**: Mean age = 36, Range = 26\n- **Team D**: Mean age = 41, Range = 19\n\n### (a) Which team has the youngest members on average?\nTo find out which team has the youngest members on average, we will compare the mean ages of all teams:\n- Team A: 42\n- Team B: 44\n- Team C: 36\n- Team D: 41\n\nThe **youngest average age** is the lowest mean age:\n- Team C has the mean age of **36**.\n\n**Answer**: **Team C** (youngest members on average).\n\n### (b) Which team's ages have the least variability?\nTo evaluate the variability of each team's ages, we look at the range of ages for each team:\n- Team A: Range = 20\n- Team B: Range = 21\n- Team C: Range = 26\n- Team D: Range = 19\n\nThe **least variability** in age would correspond to the smallest range:\n- Team D has the smallest range of **19**.\n\n**Answer**: **Team D** (ages have the least variability).\n\n### Summary of Answers:\n(a) Team C (youngest members on average).  \n(b) Team D (ages have the least variability).",
+    "timestamp": "2025-11-07T07:48:52.049863"
+  },
+  {
+    "user_id": 2,
+    "feedback": "Custom",
+    "ai_output": "",
+    "timestamp": "2025-11-07T07:49:06.036252"
+  },
+  {
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "AI Generated",
+    "ai_output": "**Question:** What should students do in the visualization activity about the Olmec civilization, specifically regarding the city of San Lorenzo?\n\n**Summary:** In this assignment, students will read a description of the Olmec civilization and the city of San Lorenzo, which is the first city in the Americas built by the Olmec people. They are tasked with drawing their interpretation of San Lorenzo as it looked 3,600 years ago. Students must include and label five specific details from the reading, such as the art styles, physical appearances of the people, and significant structures like the giant stone heads and thrones. This activity will be collected for a grade.",
+    "timestamp": "2025-11-07T08:05:03.218252"
+  },
+  {
+    "user_id": 2,
+    "feedback": "Custom",
+    "ai_output": "",
+    "timestamp": "2025-11-07T08:05:52.092938"
+  },
+  {
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "AI Generated",
+    "ai_output": "**Question:** What are the specific questions that need to be addressed in the Columbus/New Spain study guide, and what is the overall purpose of the study guide?\n\n**Summary:** The Columbus/New Spain Study Guide, which must be filled out independently and submitted before the quiz on November 11, 2025, consists of several questions requiring detailed responses. These questions focus on Columbus's interactions with the Arawak peoples, the motivations and justifications for exploration by Columbus and other Conquistadors, the social classes in New Spain, the role of Bartolom\u00e9 de las Casas, and the purpose of Spanish missions. Each question requires two or more complete sentences to provide thorough explanations. The study guide is worth 10 points.",
+    "timestamp": "2025-11-07T08:21:51.558574"
+  },
+  {
+    "user_id": 2,
+    "feedback": "Custom",
+    "ai_output": "",
+    "prompt": "",
+    "answer": "",
+    "timestamp": "2025-11-07T08:23:58.740243"
+  },
+  {
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "AI Generated",
+    "ai_output": "**Question:** What does the reading describe about the Olmec civilization, and what specific details should be labeled in a drawing of the city of San Lorenzo?\n\n**Summary:** The activity asks students to visualize the Olmec civilization by drawing what they think the city of San Lorenzo looked like 3,600 years ago, based on the provided description. The reading emphasizes that San Lorenzo, built by the Olmec in present-day Mexico, is filled with distinct art forms, including chunky figures that appear in various materials. The Olmec had unique beauty ideals, such as flattening babies' foreheads and modifying teeth. The city features significant stone carvings, including giant heads and thrones, each weighing around 20 tons and portraying various expressions. Students must draw the city and label five specific details mentioned in the reading for a homework assignment worth 5 points.",
+    "timestamp": "2025-11-07T08:41:19.588619"
+  },
+  {
+    "user_id": 2,
+    "feedback": "Custom",
+    "ai_output": "",
+    "prompt": "",
+    "answer": "",
+    "timestamp": "2025-11-07T08:41:38.585140"
+  },
+  {
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "AI Generated",
+    "ai_output": "**Question:** What does the reading describe about the Olmec civilization and how should students visualize the city of San Lorenzo based on that description?\n\n**Summary:** The Olmec civilization, known for its art and unique cultural practices, built the city of San Lorenzo in what is now Mexico around 3,600 years ago. The city features distinct artistic elements, including chunky figures represented on various objects like walls, pottery, and jewelry. These figures often depict human and animal characteristics, including deformed faces, luxurious dental modifications, and jade accessories. Notably, San Lorenzo is characterized by enormous stone heads and thrones that are impressively large and heavy, each with distinct facial expressions. As part of an educational activity, students are asked to draw and label their interpretation of San Lorenzo, incorporating five specific details from the reading. The assignment will be collected and graded for homework.",
+    "timestamp": "2025-11-07T08:44:39.767953"
+  },
+  {
+    "user_id": 2,
+    "feedback": "Custom",
+    "prompt": "",
+    "answer": "",
+    "timestamp": "2025-11-07T08:45:02.853877"
+  },
+  {
+    "user_id": 2,
+    "response_text": "",
+    "feedback": "AI Generated",
+    "ai_output": "**Question:** What are the instructions and content of the Columbus/New Spain Study Guide?\n\n**Summary:** The Columbus/New Spain Study Guide outlines tasks for students to complete based on their notes before an upcoming quiz on November 11, 2025. It consists of five questions that require students to respond in two or more complete sentences. The questions focus on topics such as Columbus's interactions with the Arawak peoples, the motivations of Columbus and the Conquistadors to explore new territories, the social classes in New Spain, the contributions of Bartolome de las Casas, and the purpose of Spanish missions. The study guide must be filled out independently and is worth 10 points.",
+    "timestamp": "2025-11-07T08:46:53.066523"
+  },
+  {
+    "user_id": 2,
+    "feedback": "Custom",
+    "prompt": "",
+    "answer": "",
+    "timestamp": "2025-11-07T08:46:56.950748"
+  },
+  {
+    "user_id": 2,
+    "feedback": "AI Generated",
+    "prompt": "Question: What are the key points regarding the Transatlantic Slave Trade, including the motivations behind it and its expansion?",
+    "answer": "Summary: The Transatlantic Slave Trade emerged due to a labor shortage in the Americas after the death of many Indigenous Americans. Bartolom\u00e9 de Las Casas proposed the enslavement of Africans as a solution, believing they would be more resilient to European diseases and better suited for plantation work. This suggestion led to the Atlantic slave trade, where millions of Africans were forcibly transported to the Americas, particularly to sugar plantations in the West Indies and Brazil. Although Las Casas later regretted his suggestion upon witnessing the suffering of enslaved Africans, slavery had already become integral to the colonial economy, highlighting the tragic consequences of his proposal.",
+    "timestamp": "2025-11-07T09:02:14.302418"
+  },
+  {
+    "user_id": 2,
+    "feedback": "Custom",
+    "prompt": "",
+    "answer": "",
+    "timestamp": "2025-11-07T09:04:33.243143"
+  },
+  {
+    "user_id": 2,
+    "feedback": "Custom",
+    "prompt": "",
+    "answer": "",
+    "timestamp": "2025-11-07T14:52:58.617086"
+  },
+  {
+    "user_id": 2,
+    "feedback": "Custom",
+    "prompt": "",
+    "answer": "",
+    "timestamp": "2025-11-07T14:56:12.527880"
+  },
+  {
+    "user_id": 2,
+    "feedback": "Custom",
+    "prompt": "Question: What are the reading directions for the Transatlantic Slave Trade assignment, and what are the key points regarding the reasons for and expansion of the Slave Trade?",
+    "answer": "Summary: The reading assignment on the Transatlantic Slave Trade requires students to independently read the text, highlight important details about key aspects (who, what, where, when, and why), identify main ideas, and answer comprehension questions in complete sentences to be reviewed in class. The text explains that due to a worker shortage from the declining Indigenous population, Spanish colonists turned to Africa for labor by enslaving Africans. Bartolom\u00e9 de las Casas suggested this approach believing it would be less harmful, although he later regretted his proposal as it resulted in immense suffering for enslaved Africans. The demand for African labor increased dramatically, especially in sugar plantations in the West Indies and Brazil, with over 10 million enslaved Africans forcibly transported to the Americas from the 1500s to the 1800s, predominantly from West Africa.\n\u2705 Done!",
+    "timestamp": "2025-11-07T15:38:04.975610"
   }
 ]

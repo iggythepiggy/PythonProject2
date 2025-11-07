@@ -34,7 +34,6 @@
     #tip-card p { font-size: 15px; line-height: 1.5; }
     #history-card ul { max-height: 200px; overflow-y: auto; }
 
-    /* --- Sparky Popup (Centered Modal Style) --- */
     #sparky-popup {
       display: none;
       position: fixed;
@@ -52,7 +51,6 @@
 
     @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -60%); } to { opacity: 1; transform: translate(-50%, -50%); } }
 
-    /* Dim background when popup is active */
     #sparky-overlay {
       display: none;
       position: fixed;
@@ -88,7 +86,6 @@
           <li class="nav-item"><a class="nav-link" href="#" data-section="custom">Custom Prompt</a></li>
         </ul>
 
-        <!-- Right side: Login/Logout -->
         <ul class="navbar-nav ms-auto">
           {% if current_user.is_authenticated %}
             <li class="nav-item">
@@ -110,7 +107,6 @@
     </div>
   </nav>
 
-  <!-- Main content (Summarize / Solve / Custom) -->
   <div class="container">
     <!-- Summarize Section -->
     <div id="summarize-section" class="card section">
@@ -149,7 +145,6 @@
     </div>
   </div>
 
-  <!-- Tip of the Day & Recent History -->
   <div class="container mt-5">
     <div class="row g-4">
       <div class="col-md-6">
@@ -233,11 +228,16 @@
 
     async function sendFeedback(type) {
       const text = textbox.style.display === "block" ? textbox.value.trim() : '';
+
+      // Grab AI output of the active section
+      const activeSection = document.querySelector(".section:not([style*='display: none'])");
+      const ai_output = activeSection ? activeSection.querySelector(".stream-output").innerText || "" : "";
+
       try {
         await fetch("/feedback", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ feedback: type, extra: text })
+          body: JSON.stringify({ feedback: type, extra: text, ai_output: ai_output })
         });
         alert("Thanks for your feedback! ✅");
       } catch (err) {
@@ -251,10 +251,13 @@
       const text = textbox.value.trim();
       if (!text) return alert("Please type your feedback.");
 
+      const activeSection = document.querySelector(".section:not([style*='display: none'])");
+      const ai_output = activeSection ? activeSection.querySelector(".stream-output").innerText || "" : "";
+
       fetch("/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ feedback: "Custom", extra: text })
+        body: JSON.stringify({ feedback: "Custom", extra: text, ai_output: ai_output })
       })
       .then(() => {
         alert("Thanks for your feedback! ✅");

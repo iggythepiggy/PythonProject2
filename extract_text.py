@@ -13,12 +13,11 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-# NOTE: replace with your OpenAI usage or mock if not using in dev
+# --- OpenAI client ---
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
 
 # --- Database setup ---
 DB_FILE = "users.db"
-
 def init_db():
     with sqlite3.connect(DB_FILE) as conn:
         conn.execute("""
@@ -33,7 +32,6 @@ init_db()
 
 # --- Feedback JSON ---
 FEEDBACK_FILE = "feedback.json"
-
 def load_feedback():
     if os.path.exists(FEEDBACK_FILE):
         with open(FEEDBACK_FILE, "r") as f:
@@ -81,13 +79,13 @@ def add_user(username, email, password):
             conn.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, hashed_pw))
         return True
     except sqlite3.IntegrityError:
-        return False  # Username or email already exists
+        return False
 
 @login_manager.user_loader
 def load_user(user_id):
     return get_user_by_id(user_id)
 
-# --- Setup for Tesseract ---
+# --- Tesseract setup ---
 if platform.system() == "Windows":
     pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 
@@ -100,10 +98,9 @@ TIPS = [
     "Stay hydrated and take short walks during long study sessions."
 ]
 
-# --- User history (local JSON storage) ---
+# --- User history ---
 HISTORY_DIR = "user_history"
 os.makedirs(HISTORY_DIR, exist_ok=True)
-
 def user_history_file(user_id):
     return os.path.join(HISTORY_DIR, f"{user_id}.json")
 
@@ -232,7 +229,6 @@ def get_history_route():
     return jsonify(load_history(current_user.id))
 
 # --- Stream educational AI responses ---
-# --- Stream educational AI responses ---
 @app.route("/stream", methods=["POST"])
 @login_required
 def stream():
@@ -244,17 +240,13 @@ def stream():
     add_to_history(current_user.id, action, file.filename if file else "Custom Input")
 
     if action == "summarize":
-        prompt = f"Summarize this educational text clearly:\n\n{text}"
+        prompt = f"Restate the following educational text clearly as a question first, then provide a clear summary:\n\n{text}"
     elif action == "solve":
-        prompt = f"Solve and explain this educational question step-by-step:\n\n{text}"
+        prompt = f"Restate this educational question first, then solve and explain it step-by-step:\n\n{text}"
     elif action == "custom":
-        prompt = f"{custom_prompt}\n\nRelevant context:\n{text}"
+        prompt = f"{custom_prompt}\n\nAlways restate the question first, then answer. Context:\n{text}"
     else:
-        prompt = text
-
-    # --- Initialize AI output accumulator ---
-    ai_output_chunks = []
-    user_id = current_user.id  # capture user id safely BEFORE the generator
+        prompt = f"Restate this first, then answer:\n{text}"
 
     def generate():
         try:
@@ -269,58 +261,48 @@ def stream():
             for chunk in stream_resp:
                 delta = chunk.choices[0].delta.content
                 if delta:
-                    ai_output_chunks.append(delta)
                     yield delta
         except Exception as e:
-            # fallback if OpenAI API is not available
             fallback_text = "StudySpark (mock): Sorry, OpenAI not available. Here's a mock summary.\n\n" + (prompt[:1000] if prompt else "No text provided.")
-            ai_output_chunks.append(fallback_text)
             yield fallback_text
-        finally:
-            # --- Join all chunks into a single string and save to feedback.json ---
-            ai_output_str = "".join(ai_output_chunks)
-            feedback_list = load_feedback()
-            feedback_list.append({
-                "user_id": user_id,
-                "response_text": "",  # keep blank or store frontend response if needed
-                "feedback": "AI Generated",
-                "ai_output": ai_output_str,
-                "timestamp": datetime.datetime.now().isoformat()
-            })
-            save_feedback(feedback_list)
 
     return Response(generate(), mimetype="text/plain")
 
-
-# --- Feedback route (accepts JSON from the frontend) ---
+# --- Feedback route ---
 @app.route("/feedback", methods=["POST"])
 @login_required
 def feedback():
-    data = None
-    if request.is_json:
-        data = request.get_json()
-    else:
-        data = request.form.to_dict()
-        # --- Skip saving entire entry if feedback is "Good" ---
+    data = request.get_json() or request.form.to_dict()
+
     if data.get("feedback", "").strip().lower() == "good":
-        print("Skipped saving entire 'Good' feedback entry.")
         return jsonify({"message": "Skipped 'Good' feedback entry"}), 200
 
-    choice = data.get("feedback") or data.get("feedback_type") or "Unknown"
-    response_text = data.get("response_text") or data.get("extra") or ""
-    ai_output = data.get("ai_output") or ""  # NEW: include AI output if available
+    ai_output = data.get("ai_output") or ""
+
+    def extract_prompt_and_answer(ai_output):
+        clean_text = re.sub(r"[\#\*]+", "", ai_output).strip()
+        question_match = re.search(r"(.*?\?)", clean_text)
+        if question_match:
+            prompt = question_match.group(1).strip()
+            answer = clean_text[question_match.end():].strip()
+        else:
+            lines = clean_text.splitlines()
+            prompt = lines[0] if lines else ""
+            answer = "\n".join(lines[1:]) if len(lines) > 1 else ""
+        return prompt, answer
+
+    prompt, answer = extract_prompt_and_answer(ai_output)
 
     feedback_list = load_feedback()
     feedback_list.append({
         "user_id": current_user.id,
-        "response_text": response_text,
-        "feedback": choice,
-        "ai_output": ai_output,  # NEW field
+        "feedback": data.get("feedback", ""),
+        "prompt": prompt,
+        "answer": answer,
         "timestamp": datetime.datetime.now().isoformat()
     })
     save_feedback(feedback_list)
     return jsonify({"status": "ok"})
-
 
 # --- Run server ---
 if __name__ == "__main__":
