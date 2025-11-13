@@ -7,6 +7,8 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 import sqlite3, random
 
 # --- Flask setup ---
+
+
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev_secret_key")
 bcrypt = Bcrypt(app)
@@ -269,40 +271,83 @@ def stream():
     return Response(generate(), mimetype="text/plain")
 
 # --- Feedback route ---
+# --- Feedback route ---
+
 @app.route("/feedback", methods=["POST"])
 @login_required
 def feedback():
+    # Get JSON data from frontend
     data = request.get_json() or request.form.to_dict()
+    print("Feedback received:", data)  # Debug
 
+    # Skip "Good" button if you want
     if data.get("feedback", "").strip().lower() == "good":
         return jsonify({"message": "Skipped 'Good' feedback entry"}), 200
 
-    ai_output = data.get("ai_output") or ""
+    # --- Ensure feedback table exists ---
+    with sqlite3.connect(DB_FILE) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS feedback_json
+            (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                feedback_json TEXT,
+                timestamp TEXT,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        """)
 
-    def extract_prompt_and_answer(ai_output):
-        clean_text = re.sub(r"[\#\*]+", "", ai_output).strip()
-        question_match = re.search(r"(.*?\?)", clean_text)
-        if question_match:
-            prompt = question_match.group(1).strip()
-            answer = clean_text[question_match.end():].strip()
-        else:
-            lines = clean_text.splitlines()
-            prompt = lines[0] if lines else ""
-            answer = "\n".join(lines[1:]) if len(lines) > 1 else ""
-        return prompt, answer
+        # Convert dict to JSON string
+        feedback_json = json.dumps(data)
 
-    prompt, answer = extract_prompt_and_answer(ai_output)
+        # Insert feedback
+        conn.execute("""
+            INSERT INTO feedback_json (user_id, feedback_json, timestamp)
+            VALUES (?, ?, ?)
+        """, (
+            current_user.id,
+            feedback_json,
+            datetime.datetime.now().isoformat()
+        ))
 
-    feedback_list = load_feedback()
-    feedback_list.append({
-        "user_id": current_user.id,
-        "feedback": data.get("feedback", ""),
-        "prompt": prompt,
-        "answer": answer,
-        "timestamp": datetime.datetime.now().isoformat()
-    })
-    save_feedback(feedback_list)
+        conn.commit()
+
     return jsonify({"status": "ok"})
+
+# --- Analyze feedback route ---
+@app.route("/analyze_feedback", methods=["GET"])
+@login_required
+def analyze_feedback():
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM feedback_json ORDER BY id ASC")
+        rows = cur.fetchall()
+
+    if not rows:
+        return jsonify({"error": "No feedback found"}), 404
+
+    try:
+        first_feedback_dict = json.loads(rows[0][2])
+        print("First feedback dict:", first_feedback_dict)
+    except Exception as e:
+        return jsonify({"error": "Invalid JSON in feedback", "details": str(e)}), 500
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that reads study feedback in JSON format."},
+                {"role": "user", "content": json.dumps(first_feedback_dict)}
+            ],
+            max_tokens=200
+        )
+
+        ai_content = response.choices[0].message["content"]
+        return jsonify({"ai_response": ai_content})
+    except Exception as e:
+        return jsonify({"error": "OpenAI API call failed", "details": str(e)}), 500
+
+
 
 # --- Run server ---
 if __name__ == "__main__":

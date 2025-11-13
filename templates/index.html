@@ -65,6 +65,11 @@
     #sparky-popup input { margin-top: 8px; }
     #sparky-popup button { cursor: pointer; transition: transform 0.1s; }
     #sparky-popup button:hover { transform: scale(1.05); }
+
+    /* Star Rating */
+    .star { font-size: 28px; cursor: pointer; transition: transform 0.1s, color 0.2s; }
+    .star:hover { transform: scale(1.2); color: gold; }
+    .star.selected { color: gold; }
   </style>
 
   <!-- MathJax -->
@@ -85,22 +90,13 @@
           <li class="nav-item"><a class="nav-link" href="#" data-section="solve">Solve</a></li>
           <li class="nav-item"><a class="nav-link" href="#" data-section="custom">Custom Prompt</a></li>
         </ul>
-
         <ul class="navbar-nav ms-auto">
           {% if current_user.is_authenticated %}
-            <li class="nav-item">
-              <span class="nav-link text-success">Welcome, {{ current_user.username }}</span>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-danger" href="{{ url_for('logout') }}">Logout</a>
-            </li>
+            <li class="nav-item"><span class="nav-link text-success">Welcome, {{ current_user.username }}</span></li>
+            <li class="nav-item"><a class="nav-link text-danger" href="{{ url_for('logout') }}">Logout</a></li>
           {% else %}
-            <li class="nav-item">
-              <a class="nav-link text-primary" href="{{ url_for('login') }}">Login</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-primary" href="{{ url_for('signup') }}">Sign Up</a>
-            </li>
+            <li class="nav-item"><a class="nav-link text-primary" href="{{ url_for('login') }}">Login</a></li>
+            <li class="nav-item"><a class="nav-link text-primary" href="{{ url_for('signup') }}">Sign Up</a></li>
           {% endif %}
         </ul>
       </div>
@@ -108,7 +104,7 @@
   </nav>
 
   <div class="container">
-    <!-- Summarize Section -->
+    <!-- Sections -->
     <div id="summarize-section" class="card section">
       <h3 class="mb-3 text-center text-primary">✨ Summarize</h3>
       <form class="upload-form" data-action="summarize" enctype="multipart/form-data">
@@ -120,7 +116,6 @@
       <div id="summarize-output" class="stream-output"></div>
     </div>
 
-    <!-- Solve Section -->
     <div id="solve-section" class="card section" style="display:none;">
       <h3 class="mb-3 text-center text-success">🧩 Solve & Explain</h3>
       <form class="upload-form" data-action="solve" enctype="multipart/form-data">
@@ -132,7 +127,6 @@
       <div id="solve-output" class="stream-output"></div>
     </div>
 
-    <!-- Custom Prompt Section -->
     <div id="custom-section" class="card section" style="display:none;">
       <h3 class="mb-3 text-center text-secondary">🧠 Custom Prompt</h3>
       <textarea id="custom-prompt" placeholder="Type your own question or prompt here..."></textarea>
@@ -145,6 +139,7 @@
     </div>
   </div>
 
+  <!-- Tip + History -->
   <div class="container mt-5">
     <div class="row g-4">
       <div class="col-md-6">
@@ -153,7 +148,6 @@
           <p id="study-tip" class="text-muted mt-2">{{ tip_of_the_day }}</p>
         </div>
       </div>
-
       <div class="col-md-6">
         <div class="card p-4" id="history-card">
           <h5 class="text-success">🕒 Recent History</h5>
@@ -177,107 +171,21 @@
       <img src="/static/sparky.png" alt="Sparky Avatar" width="50" class="me-2 rounded-circle shadow-sm">
       <strong>How did you like this response?</strong>
     </div>
-
-    <div class="d-grid gap-2 mb-2">
-      <button class="btn btn-sm btn-primary" onclick="sendFeedback('Good')">Good</button>
-      <button class="btn btn-sm btn-warning" id="not-specific-btn">Not Specific</button>
-      <button class="btn btn-sm btn-danger" id="completely-different-btn">Completely Different</button>
-      <button class="btn btn-sm btn-secondary" id="other-btn">Other</button>
+    <div id="rating-stars" class="text-center mb-3">
+      <span class="star" data-value="1">⭐</span>
+      <span class="star" data-value="2">⭐</span>
+      <span class="star" data-value="3">⭐</span>
+      <span class="star" data-value="4">⭐</span>
+      <span class="star" data-value="5">⭐</span>
     </div>
-
-    <input type="text" id="myTextbox" class="form-control form-control-sm" style="display:none;" placeholder="Type your feedback...">
+    <input type="text" id="myTextbox" class="form-control form-control-sm" style="display:none;" placeholder="Any extra feedback...">
     <button id="textbox-submit-btn" class="btn btn-primary btn-sm mt-2" style="display:none;">Submit</button>
   </div>
 
   <footer>Made with ⚡ by StudySpark</footer>
 
   <script>
-    // --- Sparky Popup Logic ---
-    const textbox = document.getElementById("myTextbox");
-    const textboxSubmitBtn = document.getElementById("textbox-submit-btn");
-    const notSpecificBtn = document.getElementById("not-specific-btn");
-    const completelyDifferentBtn = document.getElementById("completely-different-btn");
-    const otherBtn = document.getElementById("other-btn");
-    const overlay = document.getElementById("sparky-overlay");
-    const popup = document.getElementById("sparky-popup");
-
-    function showTextbox() {
-      textbox.style.display = "block";
-      textbox.focus();
-      textboxSubmitBtn.style.display = "block";
-    }
-
-    [notSpecificBtn, completelyDifferentBtn, otherBtn].forEach(btn => {
-      btn.addEventListener("click", showTextbox);
-    });
-
-    function openPopup() {
-      overlay.style.display = "block";
-      popup.style.display = "block";
-    }
-
-    function closePopup() {
-      overlay.style.display = "none";
-      popup.style.display = "none";
-      textbox.value = "";
-      textbox.style.display = "none";
-      textboxSubmitBtn.style.display = "none";
-    }
-
-    overlay.addEventListener("click", closePopup);
-
-    async function sendFeedback(type) {
-      const text = textbox.style.display === "block" ? textbox.value.trim() : '';
-
-      // Grab AI output of the active section
-      const activeSection = document.querySelector(".section:not([style*='display: none'])");
-      const ai_output = activeSection ? activeSection.querySelector(".stream-output").innerText || "" : "";
-
-      try {
-        await fetch("/feedback", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ feedback: type, extra: text, ai_output: ai_output })
-        });
-        alert("Thanks for your feedback! ✅");
-      } catch (err) {
-        alert("Error sending feedback.");
-        console.error(err);
-      }
-      closePopup();
-    }
-
-    function submitTextboxFeedback() {
-      const text = textbox.value.trim();
-      if (!text) return alert("Please type your feedback.");
-
-      const activeSection = document.querySelector(".section:not([style*='display: none'])");
-      const ai_output = activeSection ? activeSection.querySelector(".stream-output").innerText || "" : "";
-
-      fetch("/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ feedback: "Custom", extra: text, ai_output: ai_output })
-      })
-      .then(() => {
-        alert("Thanks for your feedback! ✅");
-        closePopup();
-      })
-      .catch(err => {
-        alert("❌ Error sending feedback.");
-        console.error(err);
-      });
-    }
-
-    textboxSubmitBtn.addEventListener("click", submitTextboxFeedback);
-    textbox.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        submitTextboxFeedback();
-      }
-    });
-
-    // --- Section Switching ---
+    // --- Section switching ---
     const navLinks = document.querySelectorAll(".nav-link[data-section]");
     const sections = document.querySelectorAll(".section");
     navLinks.forEach(link => {
@@ -291,7 +199,76 @@
       });
     });
 
-    // --- Refresh History ---
+    // --- Star Rating Popup ---
+    const stars = document.querySelectorAll(".star");
+    const textbox = document.getElementById("myTextbox");
+    const textboxSubmitBtn = document.getElementById("textbox-submit-btn");
+    const overlay = document.getElementById("sparky-overlay");
+    const popup = document.getElementById("sparky-popup");
+    let selectedRating = 0;
+
+    // Map section IDs for backend
+    const sectionMap = {
+      'summarize-section': 1,
+      'solve-section': 2,
+      'custom-section': 3
+    };
+
+    stars.forEach(star => {
+      star.addEventListener("click", () => {
+        selectedRating = parseInt(star.dataset.value);
+        stars.forEach(s => s.classList.remove("selected"));
+        star.classList.add("selected");
+        textbox.style.display = "block";
+        textboxSubmitBtn.style.display = "block";
+      });
+    });
+
+    textboxSubmitBtn.addEventListener("click", async () => {
+      if (selectedRating === 0) return alert("Please select a rating first!");
+
+      const extra_feedback = textbox.value.trim();
+      const activeSection = document.querySelector(".section:not([style*='display: none'])");
+      const ai_output = activeSection ? activeSection.querySelector(".stream-output").innerText || "" : "";
+      const section_id = activeSection ? sectionMap[activeSection.id] || 0 : 0;
+
+      try {
+        await fetch("/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            star_rating: selectedRating,
+            section_id: section_id,
+            extra: extra_feedback,
+            ai_output: ai_output
+          })
+        });
+        alert("Thanks for your feedback! ⭐");
+        closePopup();
+      } catch (err) {
+        console.error("Feedback error:", err);
+        alert("Oops! Something went wrong sending feedback.");
+      }
+    });
+
+    function openPopup() {
+      overlay.style.display = "block";
+      popup.style.display = "block";
+    }
+
+    function closePopup() {
+      overlay.style.display = "none";
+      popup.style.display = "none";
+      textbox.value = "";
+      textbox.style.display = "none";
+      textboxSubmitBtn.style.display = "none";
+      stars.forEach(s => s.classList.remove("selected"));
+      selectedRating = 0;
+    }
+
+    overlay.addEventListener("click", closePopup);
+
+    // --- Refresh history ---
     async function refreshHistory() {
       const response = await fetch("/get_history");
       if (!response.ok) return;
@@ -301,13 +278,12 @@
       history.forEach(entry => {
         const li = document.createElement("li");
         li.className = "list-group-item";
-        li.innerHTML = `<strong>${entry.action}</strong> - ${entry.file}
-                        <span class="text-muted">(${entry.time})</span>`;
+        li.innerHTML = `<strong>${entry.action}</strong> - ${entry.file} <span class="text-muted">(${entry.time})</span>`;
         historyList.appendChild(li);
       });
     }
 
-    // --- File Upload + Streaming Handler ---
+    // --- Upload / Custom Prompt Handlers (stream + popup) ---
     document.querySelectorAll(".upload-form").forEach(form => {
       form.addEventListener("submit", async e => {
         e.preventDefault();
@@ -315,7 +291,6 @@
         const fileInput = form.querySelector("input[type=file]");
         const file = fileInput ? fileInput.files[0] : null;
         if (!file) return alert("Please upload a file.");
-
         const spinner = document.getElementById(`${action}-spinner`);
         const outputDiv = document.getElementById(`${action}-output`);
         spinner.style.display = "block";
@@ -334,7 +309,6 @@
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
@@ -342,22 +316,18 @@
           outputDiv.innerHTML += chunk;
           MathJax.typesetPromise([outputDiv]);
         }
-
         spinner.style.display = "none";
         outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
         MathJax.typesetPromise([outputDiv]);
         refreshHistory();
-
         openPopup();
       });
     });
 
-    // --- Custom Prompt Handler ---
     document.getElementById("custom-btn").addEventListener("click", async () => {
       const prompt = document.getElementById("custom-prompt").value.trim();
       const file = document.getElementById("custom-file").files[0];
       if (!prompt && !file) return alert("Enter a prompt or upload a file.");
-
       const spinner = document.getElementById("custom-spinner");
       const outputDiv = document.getElementById("custom-output");
       spinner.style.display = "block";
@@ -377,7 +347,6 @@
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
@@ -385,12 +354,10 @@
         outputDiv.innerHTML += chunk;
         MathJax.typesetPromise([outputDiv]);
       }
-
       spinner.style.display = "none";
       outputDiv.innerHTML += "<br><strong>✅ Done!</strong>";
       MathJax.typesetPromise([outputDiv]);
       refreshHistory();
-
       openPopup();
     });
   </script>

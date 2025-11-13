@@ -2,11 +2,6 @@
   {
     "action": "Summarize",
     "file": "Olmec Visualization Homework Activity.pdf",
-    "time": "06:02 PM"
-  },
-  {
-    "action": "Summarize",
-    "file": "Olmec Visualization Homework Activity.pdf",
     "time": "04:08 PM"
   },
   {
@@ -23,5 +18,10 @@
     "action": "Custom",
     "file": "Screenshot 2025-11-01 081857.png",
     "time": "08:21 AM"
+  },
+  {
+    "action": "Solve",
+    "file": "Screenshot 2025-11-02 135352.png",
+    "time": "08:15 AM"
   }
 ]
