@@ -326,6 +326,11 @@ def analyze_feedback():
     if not rows:
         return jsonify({"error": "No feedback found"}), 404
 
+    # --- DEBUG: print all feedback ---
+    for row in rows:
+        print("Feedback row:", row)  # row[2] is the JSON string
+        print("Parsed JSON:", json.loads(row[2]))  # converts string to dict
+
     try:
         first_feedback_dict = json.loads(rows[0][2])
         print("First feedback dict:", first_feedback_dict)
@@ -346,6 +351,7 @@ def analyze_feedback():
         return jsonify({"ai_response": ai_content})
     except Exception as e:
         return jsonify({"error": "OpenAI API call failed", "details": str(e)}), 500
+
 
 
 
